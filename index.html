@@ -3,314 +3,451 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Train Reservation System | Luxury Premium</title>
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
+    <title>Train Booking | Executive Portal</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
         :root {
-            --primary: #1a1a1a;
-            --secondary: #8e8e8e;
-            --accent: #d4af37; /* لون ذهبي فخم للمسات البسيطة */
-            --bg-color: #fcfcfc;
-            --card-bg: #ffffff;
+            --bg-main: #0b1120; --bg-card: #151c2c; --bg-input: #0f172a; --border-color: #1e293b;
+            --primary-blue: #3b82f6; --primary-hover: #2563eb; --text-main: #f8fafc; --text-muted: #94a3b8;
+            --shadow-color: rgba(0, 0, 0, 0.5); --icon-color: #f8fafc;
+        }
+        [data-theme="light"] {
+            --bg-main: #f1f5f9; --bg-card: #ffffff; --bg-input: #f8fafc; --border-color: #e2e8f0;
+            --primary-blue: #2563eb; --primary-hover: #1d4ed8; --text-main: #0f172a; --text-muted: #64748b;
+            --shadow-color: rgba(0, 0, 0, 0.05); --icon-color: #0f172a;
         }
 
-        body {
-            font-family: 'Cairo', sans-serif;
-            background-color: var(--bg-color);
-            color: var(--primary);
-            margin: 0;
-            padding: 0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            background-image: radial-gradient(circle at 50% 0%, #ffffff 0%, #f0f0f0 100%);
-        }
-
-        .container {
-            width: 100%;
-            max-width: 500px;
-            background: var(--card-bg);
-            padding: 40px;
-            border-radius: 20px;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.04);
-            transition: all 0.5s ease;
-        }
-
-        /* تنسيق العناوين */
-        h2 {
-            text-align: center;
-            font-weight: 700;
-            margin-bottom: 5px;
-            color: var(--primary);
-        }
-        p.subtitle {
-            text-align: center;
-            color: var(--secondary);
-            margin-bottom: 30px;
-            font-size: 0.9em;
-        }
-
-        /* تنسيق الحقول */
-        .form-group {
-            margin-bottom: 20px;
-            position: relative;
-        }
+        body { font-family: 'Inter', sans-serif; background-color: var(--bg-main); color: var(--text-main); margin: 0; padding: 20px; display: flex; justify-content: center; align-items: flex-start; min-height: 100vh; transition: 0.3s; }
+        .theme-toggle { position: fixed; top: 20px; right: 20px; background: var(--bg-card); border: 1px solid var(--border-color); color: var(--text-main); border-radius: 50%; width: 45px; height: 45px; cursor: pointer; font-size: 20px; box-shadow: 0 4px 6px var(--shadow-color); z-index: 1000; }
+        .card { background-color: var(--bg-card); border: 1px solid var(--border-color); border-radius: 16px; padding: 40px; width: 100%; max-width: 1000px; box-shadow: 0 25px 50px -12px var(--shadow-color); margin-top: 40px; margin-bottom: 40px; }
         
-        label {
-            display: block;
-            margin-bottom: 8px;
-            font-size: 0.85em;
-            font-weight: 600;
-            color: var(--secondary);
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
+        .logo-container { display: flex; align-items: center; margin-bottom: 5px; justify-content: space-between; }
+        .logo-text { font-size: 28px; font-weight: 800; color: var(--text-main); }
+        .subtitle { color: var(--text-muted); font-size: 14px; margin-bottom: 30px; }
 
-        input {
-            width: 100%;
-            padding: 15px;
-            box-sizing: border-box;
-            border: 1px solid #eaeaea;
-            border-radius: 10px;
-            font-family: 'Cairo', sans-serif;
-            font-size: 1em;
-            background-color: #fafafa;
-            transition: all 0.3s;
-        }
+        /* Login */
+        .role-selector { display: flex; gap: 15px; margin-bottom: 25px; }
+        .role-btn { flex: 1; padding: 15px; background-color: var(--bg-input); border: 1px solid var(--border-color); color: var(--text-main); border-radius: 10px; font-weight: 600; cursor: pointer; transition: 0.3s; display: flex; justify-content: center; align-items: center; gap: 8px; font-size: 15px;}
+        .role-btn.active { background-color: rgba(59, 130, 246, 0.15); border-color: var(--primary-blue); color: var(--primary-blue); }
 
-        input:focus {
-            outline: none;
-            border-color: var(--primary);
-            background-color: #fff;
-            box-shadow: 0 0 0 4px rgba(26, 26, 26, 0.05);
-        }
+        .form-group { margin-bottom: 20px; text-align: left; }
+        label { display: block; margin-bottom: 8px; font-size: 13px; font-weight: 600; color: var(--text-muted); }
+        input, select { width: 100%; padding: 12px 16px; box-sizing: border-box; border: 1px solid var(--border-color); border-radius: 8px; background-color: var(--bg-input); color: var(--text-main); transition: 0.2s; font-family: 'Inter'; }
+        input:focus, select:focus { outline: none; border-color: var(--primary-blue); box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1); }
+        
+        button.primary-btn { width: 100%; padding: 14px; background-color: #111827; color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; transition: 0.2s; }
+        [data-theme="dark"] button.primary-btn { background-color: var(--primary-blue); }
 
-        /* الأزرار الفخمة */
-        button {
-            width: 100%;
-            padding: 15px;
-            background-color: var(--primary);
-            color: #fff;
-            border: none;
-            border-radius: 10px;
-            font-family: 'Cairo', sans-serif;
-            font-size: 1.1em;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            margin-top: 10px;
-        }
+       
+        #login-section { max-width: 440px; margin: auto; }
+        #main-app { display: none; width: 100%; padding: 30px; }
+        .admin-header { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 20px; }
+        
+        .tabs { display: flex; margin-bottom: 25px; gap: 15px; border: none; outline: none; }
+        .tab { padding: 10px 20px; color: var(--text-muted); cursor: pointer; font-weight: 600; border-radius: 8px; transition: 0.2s; border: none; }
+        .tab:hover { color: var(--text-main); background-color: var(--bg-input); }
+        .tab.active { color: var(--primary-blue); background-color: rgba(59, 130, 246, 0.1); }
 
-        button:hover {
-            background-color: #333;
-            transform: translateY(-2px);
-            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
-        }
+       
+        .management-table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+        .management-table th { padding: 14px 10px; text-align: left; color: var(--text-muted); font-weight: 600; white-space: nowrap; border: none; }
+        .management-table td { padding: 18px 10px; color: var(--text-main); vertical-align: middle; border: none; }
+        
+        .management-table tbody tr { transition: background-color 0.2s; border-radius: 8px; }
+        .management-table tbody tr:hover { background-color: rgba(59, 130, 246, 0.05); }
 
-        button.outline {
-            background-color: transparent;
-            color: var(--primary);
-            border: 2px solid var(--primary);
-            margin-top: 15px;
-        }
+        .text-bold { font-weight: 700; display: block;}
+        .text-small { font-size: 11.5px; color: var(--text-muted); display: block; margin-top: 4px; }
 
-        button.outline:hover {
-            background-color: var(--primary);
-            color: #fff;
-        }
+        /* Statuses */
+        .status { padding: 6px 12px; border-radius: 6px; font-size: 12px; font-weight: 700; display: inline-block; white-space: nowrap; }
+        .status-on-time { background: rgba(34, 197, 94, 0.1); color: #16a34a; }
+        .status-delayed { background: rgba(245, 158, 11, 0.1); color: #d97706; }
+        .status-cancelled { background: rgba(239, 68, 68, 0.1); color: #dc2626; }
 
-        /* قسم الحجز مخفي بالبداية */
-        #booking-section {
-            display: none;
-            max-width: 700px;
-        }
+        .action-btn { cursor: pointer; border: none; background: none; font-size: 18px; transition: 0.2s; padding: 5px; opacity: 0.8; }
+        .action-btn:hover { transform: scale(1.15); opacity: 1; }
 
-        /* كروت القطارات */
-        .train-card {
-            border: 1px solid #eaeaea;
-            padding: 20px;
-            margin-bottom: 15px;
-            border-radius: 15px;
-            background: #fff;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            transition: all 0.3s;
-        }
-        .train-card:hover {
-            border-color: var(--accent);
-            box-shadow: 0 5px 15px rgba(212, 175, 55, 0.1);
-        }
-        .train-info h4 { margin: 0 0 5px 0; color: var(--primary); }
-        .train-info p { margin: 0; color: var(--secondary); font-size: 0.9em; }
-        .price-tag {
-            font-weight: 700;
-            color: var(--accent);
-            font-size: 1.2em;
-        }
+        /* Booking Train Selection List */
+        #train-selection-list { max-height: 250px; overflow-y: auto; margin-bottom: 25px; padding-right: 5px; }
+        #train-selection-list::-webkit-scrollbar { width: 6px; }
+        #train-selection-list::-webkit-scrollbar-thumb { background: var(--border-color); border-radius: 6px; }
+        .train-card { background-color: var(--bg-input); border: 1px solid var(--border-color); border-left: 4px solid var(--primary-blue); border-radius: 8px; padding: 15px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; transition: 0.2s; }
+        .train-card:hover { border-color: var(--primary-blue); transform: translateX(3px); }
+        .train-card-info strong { color: var(--text-main); display: block; margin-bottom: 6px; font-size: 15px;}
+        .train-card-info span { color: var(--text-muted); font-size: 13px;}
+        button.select-btn { background: transparent; color: var(--primary-blue); border: 1px solid var(--primary-blue); padding: 8px 18px; border-radius: 6px; cursor: pointer; font-weight: 600; }
+        button.select-btn:hover { background: var(--primary-blue); color: white; }
 
-        /* رسائل النظام */
-        #message {
-            margin-top: 20px;
-            text-align: center;
-            font-weight: 600;
-            padding: 15px;
-            border-radius: 10px;
-            display: none;
-        }
-        .msg-success { background: #e8f5e9; color: #2e7d32; border: 1px solid #c8e6c9; }
-        .msg-error { background: #ffebee; color: #c62828; border: 1px solid #ffcdd2; }
+        /* Custom Modal for Editing */
+        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.6); z-index: 2000; justify-content: center; align-items: center; backdrop-filter: blur(4px); }
+        .modal-content { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 16px; padding: 30px; width: 100%; max-width: 400px; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5); }
+        .modal-title { font-size: 20px; font-weight: 800; margin-bottom: 20px; color: var(--text-main); }
 
+        #schedules-section, #booking-section { display: none; }
+        #admin-tickets-section { display: none; margin-top: 40px; padding-top: 25px; border: none; }
+        
+        #message { margin-top: 15px; text-align: center; font-size: 14px; padding: 12px; border-radius: 6px; display: none; }
+        .msg-success { background: rgba(34, 197, 94, 0.1); color: #16a34a; border: 1px solid rgba(34, 197, 94, 0.2); }
+        .msg-error { background: rgba(239, 68, 68, 0.1); color: #dc2626; border: 1px solid rgba(239, 68, 68, 0.2); }
+        
+        .form-row { display: flex; gap: 15px; }
+        .form-row .form-group { flex: 1; }
     </style>
 </head>
 <body>
 
-    <div class="container" id="login-section">
-        <h2>Staff Portal</h2>
-        <p class="subtitle">Secure Access to Train Management</p>
+    <button class="theme-toggle" onclick="toggleTheme()" id="themeBtn"></button>
+
+    <div class="card" id="login-section">
+        <div class="logo-text" style="text-align: center; margin-bottom: 10px;">Train Booking</div>
+        <p class="subtitle" style="text-align: center;">Secure System Access</p>
         
-        <form id="loginForm" onsubmit="handleLogin(event)">
-            <div class="form-group">
-                <label>Staff Username</label>
-                <input type="text" id="username" placeholder="Enter your username" required>
-            </div>
-            <div class="form-group">
-                <label>Password</label>
-                <input type="password" id="password" placeholder="••••••••" required>
-            </div>
-            <button type="submit">Secure Login</button>
+        <div class="role-selector">
+            <button type="button" id="btn-admin" class="role-btn active" onclick="setRole('admin')">👔 Admin</button>
+            <button type="button" id="btn-staff" class="role-btn" onclick="setRole('staff')">👨‍💼 Staff</button>
+        </div>
+
+        <form onsubmit="handleLogin(event)">
+            <div class="form-group"><label>Username</label><input type="text" id="username" required></div>
+            <div class="form-group"><label>Password</label><input type="password" id="password" required></div>
+            <button type="submit" class="primary-btn">Sign In</button>
         </form>
     </div>
 
-    <div class="container" id="booking-section">
-        <h2>Reservation System</h2>
-        <p class="subtitle">Book tickets for passengers efficiently</p>
-        
-        <div id="results">
+    <div class="card" id="main-app">
+        <div class="admin-header">
+            <div>
+                <h1 class="logo-text" id="page-title">Schedules</h1>
+                <p class="subtitle" id="page-subtitle" style="margin-bottom:0;">View and manage routes</p>
             </div>
+            <button onclick="logout()" style="background: none; border: 1px solid #ef4444; color: #ef4444; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight:600;">Logout</button>
+        </div>
 
-        <button class="outline" onclick="loadTrains()">Refresh Available Trains</button>
+        <div class="tabs" id="admin-tabs">
+            <div class="tab active" onclick="switchTab('schedules')" id="tab-schedules">🚆 Train Schedules</div>
+            <div class="tab" onclick="switchTab('booking')" id="tab-booking">🎫 Ticketing & Bookings</div>
+        </div>
 
-        <hr style="border: none; border-top: 1px solid #eaeaea; margin: 30px 0;">
+        <div id="schedules-section">
+            <div style="overflow-x: auto;">
+                <table class="management-table">
+                    <thead>
+                        <tr>
+                            <th>Train</th>
+                            <th>Route</th>
+                            <th>Timing</th>
+                            <th>Seats</th>
+                            <th>Price</th>
+                            <th>Status</th>
+                            <th style="text-align: center; width: 100px;" id="actions-header">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="scheduleList"></tbody>
+                </table>
+            </div>
+        </div>
 
-        <form id="bookingForm" onsubmit="bookTicket(event)">
+        <div id="booking-section">
+            <div id="train-selection-list"></div>
+            <form onsubmit="bookTicket(event)">
+                <div class="form-group">
+                    <input type="text" id="trainID" placeholder="-- Select a Route from the list above --" readonly required style="background-color: var(--border-color); text-align: center; font-weight: bold; cursor: not-allowed;">
+                </div>
+                <div class="form-group">
+                    <label>Passenger Name</label>
+                    <input type="text" id="name" required>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Passenger ID</label>
+                        <input type="text" id="passengerID" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Mobile Number</label>
+                        <input type="tel" id="contact" required>
+                    </div>
+                </div>
+                <button type="submit" class="primary-btn" style="width:auto; padding: 14px 40px; margin-top: 10px;">Issue Ticket</button>
+            </form>
+            <div id="message"></div>
+
+            <div id="admin-tickets-section">
+                <h3 class="logo-text" style="font-size: 20px; margin-bottom: 15px;">Booked Seats Management</h3>
+                <div style="overflow-x: auto;">
+                    <table class="management-table">
+                        <thead>
+                            <tr>
+                                <th>PNR #</th>
+                                <th>Passenger Name</th>
+                                <th>Route ID</th>
+                                <th style="text-align: center; width: 100px;">Cancel Seat</th>
+                            </tr>
+                        </thead>
+                        <tbody id="ticketList"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="editModal">
+        <div class="modal-content">
+            <div class="modal-title">Edit Route: <span id="editTrainIdDisplay" style="color:var(--primary-blue);"></span></div>
+            <input type="hidden" id="editTrainId">
+            
             <div class="form-group">
-                <label>Train ID</label>
-                <input type="text" id="trainID" placeholder="e.g. TR-01" required>
+                <label>Ticket Price (SAR)</label>
+                <input type="number" id="editPrice" step="0.01">
             </div>
             
             <div class="form-group">
-                <label>Passenger Name (Letters only)</label>
-                <input type="text" id="name" pattern="[A-Za-z\u0600-\u06FF\s]+" title="Please enter a valid name (letters only)" placeholder="e.g. Faisal" required>
+                <label>Route Status</label>
+                <select id="editStatus">
+                    <option value="On Time">🟢 On Time</option>
+                    <option value="Delayed">🟠 Delayed</option>
+                    <option value="Cancelled">🔴 Cancelled</option>
+                </select>
             </div>
 
-            <div class="form-group">
-                <label>Passenger ID</label>
-                <input type="text" id="passengerID" minlength="4" placeholder="e.g. SA-01" required>
+            <div class="form-row" style="margin-top: 30px;">
+                <button onclick="saveTrainEdit()" class="primary-btn" style="flex:2;">Save Changes</button>
+                <button onclick="closeEditModal()" class="primary-btn" style="flex:1; background-color:var(--border-color); color:var(--text-main);">Cancel</button>
             </div>
-
-            <div class="form-group">
-                <label>Contact Number</label>
-                <input type="tel" id="contact" pattern="05[0-9]{8}" title="Must be 10 digits starting with 05" placeholder="e.g. 05XXXXXXXX" required>
-            </div>
-
-            <button type="submit">Confirm & Issue Ticket</button>
-        </form>
-
-        <div id="message"></div>
+        </div>
     </div>
 
     <script>
-        // الرابط الخاص بالسيرفر (بدون تغيير)
-        // ⚠️ مهم: إذا كان الباك إند حقك مرفوع على ريندر، ضع الرابط هنا بدل localhost
-        // مثال: const API_URL = 'https://train-reservation-system-6xaq.onrender.com/api';
         const API_URL = '/api'; 
+        let currentRole = 'admin';
 
-        // دالة تسجيل الدخول (واجهة تفاعلية للانتقال لصفحة الحجز)
+       
+        function initTheme() {
+           
+            const savedTheme = localStorage.getItem('appTheme') || 'dark';
+            document.body.setAttribute('data-theme', savedTheme);
+            document.getElementById('themeBtn').innerHTML = savedTheme === 'dark' ? '☀️' : '🌙';
+        }
+
+      
+        initTheme();
+
+        function toggleTheme() {
+            const body = document.body;
+            const newTheme = body.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+            body.setAttribute('data-theme', newTheme);
+            document.getElementById('themeBtn').innerHTML = newTheme === 'dark' ? '☀️' : '🌙';
+           
+            localStorage.setItem('appTheme', newTheme);
+        }
+       
+        function setRole(role) {
+            currentRole = role;
+            document.getElementById('btn-admin').className = role === 'admin' ? 'role-btn active' : 'role-btn';
+            document.getElementById('btn-staff').className = role === 'staff' ? 'role-btn active' : 'role-btn';
+        }
+
         function handleLogin(event) {
-            event.preventDefault(); // منع تحديث الصفحة
-            
-            // بما أنه First Release، بنسوي انتقال مباشر كأن الموظف سجل دخول بنجاح
+            event.preventDefault();
             document.getElementById('login-section').style.display = 'none';
-            document.getElementById('booking-section').style.display = 'block';
+            document.getElementById('main-app').style.display = 'block';
             
-            // تحميل القطارات تلقائياً أول ما تفتح صفحة الحجز
-            loadTrains();
+            if (currentRole === 'staff') {
+                document.getElementById('admin-tabs').style.display = 'none';
+                document.getElementById('admin-tickets-section').style.display = 'none'; 
+                document.getElementById('actions-header').style.display = 'none'; 
+                document.getElementById('page-title').innerText = 'Ticketing System';
+                document.getElementById('page-subtitle').innerText = 'Select a route and issue tickets';
+                switchTab('booking');
+            } else {
+                document.getElementById('admin-tabs').style.display = 'flex';
+                document.getElementById('admin-tickets-section').style.display = 'block'; 
+                document.getElementById('actions-header').style.display = 'table-cell'; 
+                document.getElementById('page-title').innerText = 'Train Schedules';
+                document.getElementById('page-subtitle').innerText = 'View and manage routes and timings';
+                switchTab('schedules');
+            }
         }
 
-        // دالة جلب القطارات من السيرفر
-        async function loadTrains() {
-            try {
-                // نستخدم المسار النسبي عشان يشتغل على Render بدون مشاكل
-                const response = await fetch(`${API_URL}/trains`);
-                const trains = await response.json();
-                
-                const resultsDiv = document.getElementById('results');
-                resultsDiv.innerHTML = '';
-                
-                if(trains.length === 0) {
-                    resultsDiv.innerHTML = '<p style="text-align:center; color:gray;">No trains available right now.</p>';
-                    return;
-                }
+        function switchTab(tab) {
+            document.getElementById('schedules-section').style.display = tab === 'schedules' ? 'block' : 'none';
+            document.getElementById('booking-section').style.display = tab === 'booking' ? 'block' : 'none';
+            
+            if(currentRole === 'admin') {
+                document.getElementById('tab-schedules').className = tab === 'schedules' ? 'tab active' : 'tab';
+                document.getElementById('tab-booking').className = tab === 'booking' ? 'tab active' : 'tab';
+                document.getElementById('page-title').innerText = tab === 'schedules' ? 'Train Schedules' : 'Ticketing System';
+                document.getElementById('page-subtitle').innerText = tab === 'schedules' ? 'View and manage routes and timings' : 'Select a route and issue tickets';
+            }
 
-                trains.forEach(train => {
-                    resultsDiv.innerHTML += `
-                        <div class="train-card">
-                            <div class="train-info">
-                                <h4>${train.trainName} (${train.trainID})</h4>
-                                <p>${train.departureStation} ➔ ${train.arrivalStation}</p>
-                                <p><strong>Available Seats:</strong> ${train.availableSeats}</p>
-                            </div>
-                            <div class="price-tag">
-                                ${train.price} SAR
-                            </div>
+            if(tab === 'schedules') loadSchedules();
+            if(tab === 'booking') {
+                loadBookingTrains();
+                if(currentRole === 'admin') loadTickets(); 
+            }
+        }
+
+        // --- Load Schedules Table ---
+        async function loadSchedules() {
+            const res = await fetch(`${API_URL}/trains`);
+            const trains = await res.json();
+            const list = document.getElementById('scheduleList');
+            list.innerHTML = '';
+            
+            trains.forEach(t => {
+                const dbStatus = t.status || 'On Time';
+                let statusClass = 'status-on-time';
+                if(dbStatus === 'Delayed') statusClass = 'status-delayed';
+                if(dbStatus === 'Cancelled' || t.availableSeats === 0) statusClass = 'status-cancelled';
+                
+                const finalStatus = t.availableSeats === 0 ? 'Full' : dbStatus;
+
+                const actionsHtml = (currentRole === 'admin') ? `
+                    <td style="text-align: center; width: 100px;">
+                        <button class="action-btn" onclick="openEditModal('${t.trainID}', '${t.price}', '${dbStatus}')" title="Edit">✏️</button>
+                    </td>` : '';
+
+                list.innerHTML += `
+                    <tr>
+                        <td class="text-bold">${t.trainID}</td>
+                        <td><span class="text-bold">${t.departureStation}</span><span class="text-small">to ${t.arrivalStation}</span></td>
+                        <td><span class="text-bold">${t.departureDate}</span><span class="text-small">10:00 AM</span></td>
+                        <td><span class="text-bold" style="color:${t.availableSeats>0?'#16a34a':'#dc2626'}">${t.availableSeats}</span></td>
+                        <td class="text-bold">${t.price} SAR</td>
+                        <td><span class="status ${statusClass}">${finalStatus}</span></td>
+                        ${actionsHtml}
+                    </tr>
+                `;
+            });
+        }
+
+        // --- Interactive Modal for Editing ---
+        function openEditModal(id, price, status) {
+            document.getElementById('editTrainIdDisplay').innerText = id;
+            document.getElementById('editTrainId').value = id;
+            document.getElementById('editPrice').value = price;
+            document.getElementById('editStatus').value = status;
+            document.getElementById('editModal').style.display = 'flex';
+        }
+
+        function closeEditModal() { document.getElementById('editModal').style.display = 'none'; }
+
+        async function saveTrainEdit() {
+            const id = document.getElementById('editTrainId').value;
+            const newPrice = document.getElementById('editPrice').value;
+            const newStatus = document.getElementById('editStatus').value;
+
+            await fetch(`${API_URL}/trains/${id}`, {
+                method: 'PATCH',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ price: newPrice, status: newStatus })
+            });
+            
+            closeEditModal();
+            loadSchedules();
+        }
+
+        // --- Booking Features ---
+        async function loadBookingTrains() {
+            const res = await fetch(`${API_URL}/trains`);
+            const trains = await res.json();
+            const list = document.getElementById('train-selection-list');
+            list.innerHTML = '';
+            
+            trains.forEach(t => {
+                const dbStatus = t.status || 'On Time';
+                const isUnavailable = t.availableSeats === 0 || dbStatus === 'Cancelled';
+                
+                let btnHtml = isUnavailable 
+                    ? `<button type="button" class="select-btn" style="border-color:#dc2626; color:#dc2626; cursor:not-allowed;" disabled>Unavailable</button>` 
+                    : `<button type="button" class="select-btn" onclick="selectTrainForBooking('${t.trainID}')">Select</button>`;
+
+                list.innerHTML += `
+                    <div class="train-card">
+                        <div class="train-card-info">
+                            <strong>${t.trainName || 'Route'} (${t.trainID})</strong>
+                            <span>${t.departureStation} ➔ ${t.arrivalStation} | ${t.price} SAR | <strong>${t.availableSeats} Seats Left</strong></span>
                         </div>
-                    `;
-                });
-            } catch (error) {
-                console.error("Error loading trains:", error);
-            }
+                        ${btnHtml}
+                    </div>
+                `;
+            });
         }
 
-        // دالة الحجز
+        function selectTrainForBooking(id) {
+            const input = document.getElementById('trainID');
+            input.value = id;
+            input.style.borderColor = 'var(--primary-blue)';
+            input.style.backgroundColor = 'var(--bg-input)';
+        }
+
         async function bookTicket(event) {
-            event.preventDefault(); // منع تحديث الصفحة عشان نقدر نظهر رسالة النجاح
+            event.preventDefault();
+            const msg = document.getElementById('message');
+            const payload = { 
+                trainID: document.getElementById('trainID').value, 
+                passengerID: document.getElementById('passengerID').value, 
+                name: document.getElementById('name').value, 
+                contactNumber: document.getElementById('contact').value 
+            };
+            
+            if(!payload.trainID || payload.trainID.includes('Select')) {
+                alert('Please select a train from the list first.');
+                return;
+            }
 
-            const trainID = document.getElementById('trainID').value;
-            const passengerID = document.getElementById('passengerID').value;
-            const name = document.getElementById('name').value;
-            const contact = document.getElementById('contact').value;
-            const msgDiv = document.getElementById('message');
-
-            msgDiv.style.display = 'none'; // إخفاء الرسالة السابقة
-
-            try {
-                const response = await fetch(`${API_URL}/book`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ trainID, passengerID, name, contactNumber: contact })
-                });
-
-                const result = await response.json();
-                
-                msgDiv.style.display = 'block';
-                if (response.ok) {
-                    msgDiv.className = 'msg-success';
-                    msgDiv.innerHTML = `✅ ${result.message}<br>Ticket ID: <strong>${result.ticketNumber}</strong>`;
-                    document.getElementById('bookingForm').reset(); // تنظيف الحقول بعد الحجز
-                    loadTrains(); // تحديث المقاعد
-                } else {
-                    msgDiv.className = 'msg-error';
-                    msgDiv.innerHTML = `❌ ${result.message || result.error}`;
-                }
-            } catch (error) {
-                msgDiv.style.display = 'block';
-                msgDiv.className = 'msg-error';
-                msgDiv.innerHTML = `❌ Connection error. Please try again.`;
+            const res = await fetch(`${API_URL}/book`, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(payload) });
+            const result = await res.json();
+            msg.style.display = 'block';
+            
+            if(res.ok) {
+                msg.className = 'msg-success'; 
+                msg.innerHTML = `Reservation Confirmed! PNR: <strong>${result.ticketNumber}</strong>`;
+                document.getElementById('bookingForm').reset();
+                document.getElementById('trainID').value = '';
+                document.getElementById('trainID').style.backgroundColor = 'var(--border-color)';
+                loadBookingTrains(); 
+                if(currentRole === 'admin') loadTickets(); 
+            } else { 
+                msg.className = 'msg-error'; 
+                msg.innerHTML = result.message || 'Error processing reservation.'; 
             }
         }
-    </script>
 
+        // --- Ticket Management (Delete Seat) ---
+        async function loadTickets() {
+            if(currentRole !== 'admin') return;
+            const res = await fetch(`${API_URL}/tickets`);
+            const tickets = await res.json();
+            const list = document.getElementById('ticketList');
+            list.innerHTML = '';
+            
+            tickets.forEach(t => {
+                const passName = t.passengers?.name || 'Unknown';
+                const passID = t.passengerID || 'N/A';
+                list.innerHTML += `
+                    <tr>
+                        <td class="text-bold">#${t.ticketNumber}</td>
+                        <td><span class="text-bold">${passName}</span><span class="text-small">ID: ${passID}</span></td>
+                        <td class="text-bold">${t.trainID}</td>
+                        <td style="text-align:center; width: 100px;">
+                            <button class="action-btn" onclick="cancelTicket('${t.ticketNumber}')" title="Cancel Booking">🗑️</button>
+                        </td>
+                    </tr>
+                `;
+            });
+        }
+
+        async function cancelTicket(id) {
+            if(confirm('Are you sure you want to cancel passenger seat #' + id + '?')) {
+                await fetch(`${API_URL}/tickets/${id}`, { method: 'DELETE' });
+                loadTickets();        
+                loadBookingTrains();  
+                loadSchedules(); 
+            }
+        }
+
+        function logout() { location.reload(); }
+    </script>
 </body>
 </html>
