@@ -7,78 +7,94 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// ⚠️ ضع رابط مشروعك ومفتاح الوصول (Anon Key) من لوحة تحكم Supabase هنا ⚠️
+
 const supabaseUrl = 'https://gmjpifzyghtosnktcebn.supabase.co';
 const supabaseKey = 'sb_publishable_RvYf7D1dSsi4R8YLowcjqA_Q7EpGo8O';
 const supabase = createClient(supabaseUrl, supabaseKey);
 
-// واجهة عرض صفحة HTML
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'index.html'));
 });
 
-// 1. واجهة البحث عن القطارات (Search Trains)
 app.get('/api/trains', async (req, res) => {
-    const { dep, arr } = req.query;
-    
-    // استرجاع القطارات التي بها مقاعد متاحة
-    let query = supabase.from('trains').select('*').gt('availableSeats', 0);
-
-    if (dep && arr) {
-        query = query.eq('departureStation', dep).eq('arrivalStation', arr);
-    }
-
-    const { data, error } = await query;
+    const { data, error } = await supabase.from('trains').select('*').order('trainID');
     if (error) return res.status(500).json({ error: error.message });
     res.json(data);
 });
 
-// 2. واجهة الحجز (Process Reservation)
-app.post('/api/book', async (req, res) => {
-    const { trainID, passengerID, name, contactNumber } = req.body;
-
-    // أ. التحقق من توفر المقاعد أولاً
-    const { data: train, error: trainError } = await supabase
-        .from('trains')
-        .select('availableSeats')
-        .eq('trainID', trainID)
-        .single();
-
-    if (trainError || !train || train.availableSeats <= 0) {
-        return res.status(400).json({ message: 'No seats available on this train.' });
-    }
-
-    // ب. إضافة المسافر (أو تحديث بياناته إذا كان موجوداً - Upsert)
-    const { error: passengerError } = await supabase
-        .from('passengers')
-        .upsert({ passengerID, name, contactNumber });
-
-    if (passengerError) return res.status(500).json({ error: passengerError.message });
-
-    // ج. إنشاء التذكرة
-    const { data: ticket, error: ticketError } = await supabase
-        .from('tickets')
-        .insert([{ passengerID, trainID }])
-        .select()
-        .single();
-
-    if (ticketError) return res.status(500).json({ error: ticketError.message });
-
-    // د. تقليل عدد المقاعد المتاحة
-    const { error: updateError } = await supabase
-        .from('trains')
-        .update({ availableSeats: train.availableSeats - 1 })
-        .eq('trainID', trainID);
-
-    if (updateError) return res.status(500).json({ error: updateError.message });
-
-    res.json({ 
-        message: 'Booking successful!', 
-        ticketNumber: ticket.ticketNumber 
-    });
+app.get('/api/stats', async (req, res) => {
+    const { data, error } = await supabase.from('tickets').select('ticketNumber');
+    if (error) return res.status(500).json({ error: error.message });
+    res.json({ totalBookings: data ? data.length : 0 });
 });
 
-const PORT = 3000;
-app.listen(PORT, () => {
-    console.log(`Server running on http://localhost:${PORT}`);
+app.get('/api/tickets', async (req, res) => {
+    const { data: tickets } = await supabase.from('tickets').select('*').order('bookingDate', { ascending: false });
+    const { data: trains } = await supabase.from('trains').select('*');
+    const { data: passengers } = await supabase.from('passengers').select('*');
+
+    const result = (tickets || []).map(t => {
+        const train = (trains || []).find(tr => tr.trainID === t.trainID) || {};
+        const pass = (passengers || []).find(p => p.passengerID === t.passengerID) || {};
+        return {
+            ...t,
+            trains: { trainName: train.trainName || 'Unknown', departureDate: train.departureDate || '' },
+            passengers: { name: pass.name || 'Unknown' }
+        };
+    });
+    res.json(result);
+});
+
+app.post('/api/book', async (req, res) => {
+    const { trainID, passengerID, name, contactNumber } = req.body;
+    const { data: train, error: trainError } = await supabase.from('trains').select('availableSeats').eq('trainID', trainID).single();
+    if (trainError || !train || train.availableSeats <= 0) return res.status(400).json({ message: 'No seats available.' });
+
+    await supabase.from('passengers').upsert({ passengerID, name, contactNumber });
+    const { data: ticket } = await supabase.from('tickets').insert([{ passengerID, trainID }]).select().single();
+    await supabase.from('trains').update({ availableSeats: train.availableSeats - 1 }).eq('trainID', trainID);
+
+    res.json({ message: 'Booking successful!', ticketNumber: ticket.ticketNumber });
+});
+
+app.delete('/api/tickets/:id', async (req, res) => {
+    const ticketId = req.params.id;
+    const { data: ticket } = await supabase.from('tickets').select('trainID').eq('ticketNumber', ticketId).single();
+    
+    if (ticket) {
+        const { error: delError } = await supabase.from('tickets').delete().eq('ticketNumber', ticketId);
+        if (!delError) {
+            const { data: train } = await supabase.from('trains').select('availableSeats').eq('trainID', ticket.trainID).single();
+            if(train) await supabase.from('trains').update({ availableSeats: train.availableSeats + 1 }).eq('trainID', ticket.trainID);
+            return res.json({ message: 'Booking cancelled.' });
+        }
+    }
+    res.status(500).json({ error: 'Failed to delete.' });
+});
+
+
+
+app.delete('/api/trains/:id', async (req, res) => {
+    const { error } = await supabase.from('trains').delete().eq('trainID', req.params.id);
+    if (error) return res.status(500).json({ error: error.message });
+    res.json({ message: 'Train route deleted successfully.' });
+});
+
+
+app.patch('/api/trains/:id', async (req, res) => {
+    const { status, price } = req.body;
+    const { error } = await supabase.from('trains').update({ status, price }).eq('trainID', req.params.id);
+    if (error) return res.status(500).json({ error: error.message });
+    res.json({ message: 'Train updated successfully.' });
+});
+
+const PORT = 3000; 
+const server = app.listen(PORT, () => {
+    console.log(`✅ Server is successfully running on http://localhost:${PORT}`);
+    console.log(`⏳ Waiting for requests... (DO NOT CLOSE THIS TERMINAL)`);
+});
+
+
+server.on('error', (err) => {
+    console.error('❌ Server Error:', err);
 });
