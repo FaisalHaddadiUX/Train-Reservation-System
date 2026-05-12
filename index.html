@@ -25,7 +25,7 @@
         .logo-text { font-size: 28px; font-weight: 800; color: var(--text-main); }
         .subtitle { color: var(--text-muted); font-size: 14px; margin-bottom: 30px; }
 
-        /* Login */
+        /* Login & Registration */
         .role-selector { display: flex; gap: 15px; margin-bottom: 25px; }
         .role-btn { flex: 1; padding: 15px; background-color: var(--bg-input); border: 1px solid var(--border-color); color: var(--text-main); border-radius: 10px; font-weight: 600; cursor: pointer; transition: 0.3s; display: flex; justify-content: center; align-items: center; gap: 8px; font-size: 15px;}
         .role-btn.active { background-color: rgba(59, 130, 246, 0.15); border-color: var(--primary-blue); color: var(--primary-blue); }
@@ -38,7 +38,10 @@
         button.primary-btn { width: 100%; padding: 14px; background-color: #111827; color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; transition: 0.2s; }
         [data-theme="dark"] button.primary-btn { background-color: var(--primary-blue); }
 
-       
+        .toggle-link { color: var(--primary-blue); font-size: 13px; font-weight: 600; cursor: pointer; text-decoration: none; transition: 0.2s; }
+        .toggle-link:hover { text-decoration: underline; }
+
+        /* Dashboard Tabs */
         #login-section { max-width: 440px; margin: auto; }
         #main-app { display: none; width: 100%; padding: 30px; }
         .admin-header { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 20px; }
@@ -48,7 +51,7 @@
         .tab:hover { color: var(--text-main); background-color: var(--bg-input); }
         .tab.active { color: var(--primary-blue); background-color: rgba(59, 130, 246, 0.1); }
 
-       
+        /* Tables */
         .management-table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
         .management-table th { padding: 14px 10px; text-align: left; color: var(--text-muted); font-weight: 600; white-space: nowrap; border: none; }
         .management-table td { padding: 18px 10px; color: var(--text-main); vertical-align: middle; border: none; }
@@ -84,7 +87,7 @@
         .modal-content { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 16px; padding: 30px; width: 100%; max-width: 400px; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5); }
         .modal-title { font-size: 20px; font-weight: 800; margin-bottom: 20px; color: var(--text-main); }
 
-        #schedules-section, #booking-section { display: none; }
+        #schedules-section, #booking-section, #staff-section { display: none; }
         #admin-tickets-section { display: none; margin-top: 40px; padding-top: 25px; border: none; }
         
         #message { margin-top: 15px; text-align: center; font-size: 14px; padding: 12px; border-radius: 6px; display: none; }
@@ -101,18 +104,48 @@
 
     <div class="card" id="login-section">
         <div class="logo-text" style="text-align: center; margin-bottom: 10px;">Train Booking</div>
-        <p class="subtitle" style="text-align: center;">Secure System Access</p>
+        <p class="subtitle" id="login-subtitle" style="text-align: center;">Secure System Access</p>
         
-        <div class="role-selector">
-            <button type="button" id="btn-admin" class="role-btn active" onclick="setRole('admin')">👔 Admin</button>
-            <button type="button" id="btn-staff" class="role-btn" onclick="setRole('staff')">👨‍💼 Staff</button>
+        <div id="login-form-area">
+            <div class="role-selector">
+                <button type="button" id="btn-admin" class="role-btn active" onclick="setRole('admin')">👔 Admin</button>
+                <button type="button" id="btn-staff" class="role-btn" onclick="setRole('staff')">👨‍💼 Staff</button>
+            </div>
+
+            <form onsubmit="handleLogin(event)">
+                <div class="form-group"><label>Username</label><input type="text" id="username" required></div>
+                <div class="form-group"><label>Password</label><input type="password" id="password" required></div>
+                <button type="submit" class="primary-btn">Sign In</button>
+                
+                <div id="staff-auth-links" style="display: none; justify-content: space-between; margin-top: 15px;">
+                    <span class="toggle-link" onclick="toggleAuthMode('forgot')">Forgot Password?</span>
+                    <span class="toggle-link" onclick="toggleAuthMode('register')">Create Staff Account</span>
+                </div>
+            </form>
         </div>
 
-        <form onsubmit="handleLogin(event)">
-            <div class="form-group"><label>Username</label><input type="text" id="username" required></div>
-            <div class="form-group"><label>Password</label><input type="password" id="password" required></div>
-            <button type="submit" class="primary-btn">Sign In</button>
-        </form>
+        <div id="register-form-area" style="display: none;">
+            <form onsubmit="handleRegister(event)">
+                <div class="form-group"><label>Email Address</label><input type="email" id="reg-email" placeholder="example@company.com" required></div>
+                <div class="form-group"><label>New Username</label><input type="text" id="reg-username" required></div>
+                <div class="form-group"><label>Password</label><input type="password" id="reg-password" required></div>
+                <button type="submit" class="primary-btn">Create Account</button>
+                <div style="text-align: center; margin-top: 15px;">
+                    <span class="toggle-link" onclick="toggleAuthMode('login')">Back to Login</span>
+                </div>
+            </form>
+        </div>
+
+        <div id="forgot-form-area" style="display: none;">
+            <form onsubmit="handleForgotPassword(event)">
+                <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 20px; line-height: 1.5;">Enter your registered email address and we will send you a link to reset your password.</p>
+                <div class="form-group"><label>Registered Email</label><input type="email" id="forgot-email" placeholder="example@company.com" required></div>
+                <button type="submit" class="primary-btn">Send Reset Link</button>
+                <div style="text-align: center; margin-top: 15px;">
+                    <span class="toggle-link" onclick="toggleAuthMode('login')">Back to Login</span>
+                </div>
+            </form>
+        </div>
     </div>
 
     <div class="card" id="main-app">
@@ -127,6 +160,7 @@
         <div class="tabs" id="admin-tabs">
             <div class="tab active" onclick="switchTab('schedules')" id="tab-schedules">🚆 Train Schedules</div>
             <div class="tab" onclick="switchTab('booking')" id="tab-booking">🎫 Ticketing & Bookings</div>
+            <div class="tab" onclick="switchTab('staff')" id="tab-staff">👥 Staff Management</div>
         </div>
 
         <div id="schedules-section">
@@ -189,18 +223,29 @@
                 </div>
             </div>
         </div>
+
+        <div id="staff-section">
+            <div style="overflow-x: auto;">
+                <table class="management-table">
+                    <thead>
+                        <tr>
+                            <th>Staff Info</th>
+                            <th>Password</th>
+                            <th>Role</th>
+                            <th style="text-align: center; width: 100px;">Revoke Access</th>
+                        </tr>
+                    </thead>
+                    <tbody id="staffList"></tbody>
+                </table>
+            </div>
+        </div>
     </div>
 
     <div class="modal-overlay" id="editModal">
         <div class="modal-content">
             <div class="modal-title">Edit Route: <span id="editTrainIdDisplay" style="color:var(--primary-blue);"></span></div>
             <input type="hidden" id="editTrainId">
-            
-            <div class="form-group">
-                <label>Ticket Price (SAR)</label>
-                <input type="number" id="editPrice" step="0.01">
-            </div>
-            
+            <div class="form-group"><label>Ticket Price (SAR)</label><input type="number" id="editPrice" step="0.01"></div>
             <div class="form-group">
                 <label>Route Status</label>
                 <select id="editStatus">
@@ -209,9 +254,8 @@
                     <option value="Cancelled">🔴 Cancelled</option>
                 </select>
             </div>
-
             <div class="form-row" style="margin-top: 30px;">
-                <button onclick="saveTrainEdit()" class="primary-btn" style="flex:2;">Save Changes</button>
+                <button onclick="saveTrainEdit()" class="primary-btn" style="flex:2;">Save</button>
                 <button onclick="closeEditModal()" class="primary-btn" style="flex:1; background-color:var(--border-color); color:var(--text-main);">Cancel</button>
             </div>
         </div>
@@ -221,15 +265,12 @@
         const API_URL = '/api'; 
         let currentRole = 'admin';
 
-       
+        // --- Theme System ---
         function initTheme() {
-           
             const savedTheme = localStorage.getItem('appTheme') || 'dark';
             document.body.setAttribute('data-theme', savedTheme);
             document.getElementById('themeBtn').innerHTML = savedTheme === 'dark' ? '☀️' : '🌙';
         }
-
-      
         initTheme();
 
         function toggleTheme() {
@@ -237,18 +278,86 @@
             const newTheme = body.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
             body.setAttribute('data-theme', newTheme);
             document.getElementById('themeBtn').innerHTML = newTheme === 'dark' ? '☀️' : '🌙';
-           
             localStorage.setItem('appTheme', newTheme);
         }
-       
+
+        // --- Auth System ---
         function setRole(role) {
             currentRole = role;
             document.getElementById('btn-admin').className = role === 'admin' ? 'role-btn active' : 'role-btn';
             document.getElementById('btn-staff').className = role === 'staff' ? 'role-btn active' : 'role-btn';
+            // الروابط تظهر للموظف فقط، الإدمن ما يقدر يسجل ولا ينسى باسوورده
+            document.getElementById('staff-auth-links').style.display = role === 'staff' ? 'flex' : 'none';
+        }
+
+        function toggleAuthMode(mode) {
+            document.getElementById('login-form-area').style.display = mode === 'login' ? 'block' : 'none';
+            document.getElementById('register-form-area').style.display = mode === 'register' ? 'block' : 'none';
+            document.getElementById('forgot-form-area').style.display = mode === 'forgot' ? 'block' : 'none';
+            
+            if(mode === 'login') document.getElementById('login-subtitle').innerText = 'Secure System Access';
+            if(mode === 'register') document.getElementById('login-subtitle').innerText = 'Create New Staff Account';
+            if(mode === 'forgot') document.getElementById('login-subtitle').innerText = 'Reset Password';
+        }
+
+        function handleRegister(event) {
+            event.preventDefault();
+            const e = document.getElementById('reg-email').value.toLowerCase().trim();
+            const u = document.getElementById('reg-username').value.toLowerCase().trim();
+            const p = document.getElementById('reg-password').value;
+            
+            let staffUsers = JSON.parse(localStorage.getItem('staffUsers')) || [];
+            
+            if(u === 'staff' || staffUsers.find(user => user.username === u || user.email === e)) {
+                alert('Username or Email already exists!');
+                return;
+            }
+
+            staffUsers.push({ email: e, username: u, password: p });
+            localStorage.setItem('staffUsers', JSON.stringify(staffUsers));
+            alert('Staff account created successfully! You can now login.');
+            
+            document.getElementById('reg-email').value = '';
+            document.getElementById('reg-username').value = '';
+            document.getElementById('reg-password').value = '';
+            toggleAuthMode('login');
+        }
+
+        function handleForgotPassword(event) {
+            event.preventDefault();
+            const email = document.getElementById('forgot-email').value;
+            // رسالة وهمية تفاعلية
+            alert(`If an account exists for ${email}, a password reset link has been sent. Please check your inbox.`);
+            document.getElementById('forgot-email').value = '';
+            toggleAuthMode('login');
         }
 
         function handleLogin(event) {
             event.preventDefault();
+            const u = document.getElementById('username').value.toLowerCase().trim();
+            const p = document.getElementById('password').value;
+            
+            let loginSuccessFlag = false;
+
+            if (currentRole === 'admin') {
+                if (u === 'admin' && p === 'admin123') loginSuccessFlag = true;
+            } else {
+                if (u === 'staff' && p === 'staff123') loginSuccessFlag = true;
+                else {
+                    let staffUsers = JSON.parse(localStorage.getItem('staffUsers')) || [];
+                    const foundUser = staffUsers.find(user => user.username === u && user.password === p);
+                    if(foundUser) loginSuccessFlag = true;
+                }
+            }
+
+            if(loginSuccessFlag) {
+                launchApp();
+            } else {
+                alert('Invalid Credentials! Check username and password.');
+            }
+        }
+
+        function launchApp() {
             document.getElementById('login-section').style.display = 'none';
             document.getElementById('main-app').style.display = 'block';
             
@@ -272,19 +381,21 @@
         function switchTab(tab) {
             document.getElementById('schedules-section').style.display = tab === 'schedules' ? 'block' : 'none';
             document.getElementById('booking-section').style.display = tab === 'booking' ? 'block' : 'none';
+            document.getElementById('staff-section').style.display = tab === 'staff' ? 'block' : 'none';
             
             if(currentRole === 'admin') {
                 document.getElementById('tab-schedules').className = tab === 'schedules' ? 'tab active' : 'tab';
                 document.getElementById('tab-booking').className = tab === 'booking' ? 'tab active' : 'tab';
-                document.getElementById('page-title').innerText = tab === 'schedules' ? 'Train Schedules' : 'Ticketing System';
-                document.getElementById('page-subtitle').innerText = tab === 'schedules' ? 'View and manage routes and timings' : 'Select a route and issue tickets';
+                document.getElementById('tab-staff').className = tab === 'staff' ? 'tab active' : 'tab';
+                
+                if(tab === 'schedules') { document.getElementById('page-title').innerText = 'Train Schedules'; document.getElementById('page-subtitle').innerText = 'View and manage routes and timings'; }
+                if(tab === 'booking') { document.getElementById('page-title').innerText = 'Ticketing System'; document.getElementById('page-subtitle').innerText = 'Manage bookings and passengers'; }
+                if(tab === 'staff') { document.getElementById('page-title').innerText = 'Staff Management'; document.getElementById('page-subtitle').innerText = 'Manage employee accounts and access'; }
             }
 
             if(tab === 'schedules') loadSchedules();
-            if(tab === 'booking') {
-                loadBookingTrains();
-                if(currentRole === 'admin') loadTickets(); 
-            }
+            if(tab === 'booking') { loadBookingTrains(); if(currentRole === 'admin') loadTickets(); }
+            if(tab === 'staff') loadStaffList();
         }
 
         // --- Load Schedules Table ---
@@ -299,7 +410,6 @@
                 let statusClass = 'status-on-time';
                 if(dbStatus === 'Delayed') statusClass = 'status-delayed';
                 if(dbStatus === 'Cancelled' || t.availableSeats === 0) statusClass = 'status-cancelled';
-                
                 const finalStatus = t.availableSeats === 0 ? 'Full' : dbStatus;
 
                 const actionsHtml = (currentRole === 'admin') ? `
@@ -321,7 +431,6 @@
             });
         }
 
-        // --- Interactive Modal for Editing ---
         function openEditModal(id, price, status) {
             document.getElementById('editTrainIdDisplay').innerText = id;
             document.getElementById('editTrainId').value = id;
@@ -336,15 +445,8 @@
             const id = document.getElementById('editTrainId').value;
             const newPrice = document.getElementById('editPrice').value;
             const newStatus = document.getElementById('editStatus').value;
-
-            await fetch(`${API_URL}/trains/${id}`, {
-                method: 'PATCH',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({ price: newPrice, status: newStatus })
-            });
-            
-            closeEditModal();
-            loadSchedules();
+            await fetch(`${API_URL}/trains/${id}`, { method: 'PATCH', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ price: newPrice, status: newStatus }) });
+            closeEditModal(); loadSchedules();
         }
 
         // --- Booking Features ---
@@ -357,7 +459,6 @@
             trains.forEach(t => {
                 const dbStatus = t.status || 'On Time';
                 const isUnavailable = t.availableSeats === 0 || dbStatus === 'Cancelled';
-                
                 let btnHtml = isUnavailable 
                     ? `<button type="button" class="select-btn" style="border-color:#dc2626; color:#dc2626; cursor:not-allowed;" disabled>Unavailable</button>` 
                     : `<button type="button" class="select-btn" onclick="selectTrainForBooking('${t.trainID}')">Select</button>`;
@@ -384,51 +485,32 @@
         async function bookTicket(event) {
             event.preventDefault();
             const msg = document.getElementById('message');
-            const payload = { 
-                trainID: document.getElementById('trainID').value, 
-                passengerID: document.getElementById('passengerID').value, 
-                name: document.getElementById('name').value, 
-                contactNumber: document.getElementById('contact').value 
-            };
+            const payload = { trainID: document.getElementById('trainID').value, passengerID: document.getElementById('passengerID').value, name: document.getElementById('name').value, contactNumber: document.getElementById('contact').value };
             
-            if(!payload.trainID || payload.trainID.includes('Select')) {
-                alert('Please select a train from the list first.');
-                return;
-            }
-
+            if(!payload.trainID || payload.trainID.includes('Select')) { alert('Please select a train from the list first.'); return; }
             const res = await fetch(`${API_URL}/book`, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(payload) });
             const result = await res.json();
             msg.style.display = 'block';
-            
             if(res.ok) {
-                msg.className = 'msg-success'; 
-                msg.innerHTML = `Reservation Confirmed! PNR: <strong>${result.ticketNumber}</strong>`;
+                msg.className = 'msg-success'; msg.innerHTML = `Reservation Confirmed! PNR: <strong>${result.ticketNumber}</strong>`;
                 document.getElementById('bookingForm').reset();
                 document.getElementById('trainID').value = '';
                 document.getElementById('trainID').style.backgroundColor = 'var(--border-color)';
-                loadBookingTrains(); 
-                if(currentRole === 'admin') loadTickets(); 
-            } else { 
-                msg.className = 'msg-error'; 
-                msg.innerHTML = result.message || 'Error processing reservation.'; 
-            }
+                loadBookingTrains(); if(currentRole === 'admin') loadTickets(); 
+            } else { msg.className = 'msg-error'; msg.innerHTML = result.message || 'Error processing reservation.'; }
         }
 
-        // --- Ticket Management (Delete Seat) ---
+        // --- Ticket Management ---
         async function loadTickets() {
-            if(currentRole !== 'admin') return;
             const res = await fetch(`${API_URL}/tickets`);
             const tickets = await res.json();
             const list = document.getElementById('ticketList');
             list.innerHTML = '';
-            
             tickets.forEach(t => {
-                const passName = t.passengers?.name || 'Unknown';
-                const passID = t.passengerID || 'N/A';
                 list.innerHTML += `
                     <tr>
                         <td class="text-bold">#${t.ticketNumber}</td>
-                        <td><span class="text-bold">${passName}</span><span class="text-small">ID: ${passID}</span></td>
+                        <td><span class="text-bold">${t.passengers?.name || 'Unknown'}</span><span class="text-small">ID: ${t.passengerID || 'N/A'}</span></td>
                         <td class="text-bold">${t.trainID}</td>
                         <td style="text-align:center; width: 100px;">
                             <button class="action-btn" onclick="cancelTicket('${t.ticketNumber}')" title="Cancel Booking">🗑️</button>
@@ -441,9 +523,53 @@
         async function cancelTicket(id) {
             if(confirm('Are you sure you want to cancel passenger seat #' + id + '?')) {
                 await fetch(`${API_URL}/tickets/${id}`, { method: 'DELETE' });
-                loadTickets();        
-                loadBookingTrains();  
-                loadSchedules(); 
+                loadTickets(); loadBookingTrains(); loadSchedules(); 
+            }
+        }
+
+        // --- Staff Management (Admin Only) ---
+        function loadStaffList() {
+            const list = document.getElementById('staffList');
+            list.innerHTML = '';
+            
+            // الحساب الأساسي المحمي
+            list.innerHTML += `
+                <tr>
+                    <td>
+                        <span class="text-bold">staff</span>
+                        <span class="text-small">System Default Account</span>
+                    </td>
+                    <td style="color: var(--text-muted);">staff123</td>
+                    <td><span class="status status-on-time">Staff</span></td>
+                    <td style="text-align:center; width: 100px;"><span style="color:var(--text-muted); font-size: 11px;">Protected</span></td>
+                </tr>
+            `;
+
+            // الحسابات اللي تم إنشاؤها
+            let staffUsers = JSON.parse(localStorage.getItem('staffUsers')) || [];
+            staffUsers.forEach(user => {
+                list.innerHTML += `
+                    <tr>
+                        <td>
+                            <span class="text-bold">${user.username}</span>
+                            <span class="text-small">${user.email}</span>
+                        </td>
+                        <td style="color: var(--text-muted);">${user.password}</td>
+                        <td><span class="status status-on-time">Staff</span></td>
+                        <td style="text-align:center; width: 100px;">
+                            <button class="action-btn" onclick="deleteStaff('${user.username}')" title="Delete Staff Account">🗑️</button>
+                        </td>
+                    </tr>
+                `;
+            });
+        }
+
+        function deleteStaff(username) {
+            if(confirm(`Are you sure you want to revoke access for '${username}'?`)) {
+                let staffUsers = JSON.parse(localStorage.getItem('staffUsers')) || [];
+                staffUsers = staffUsers.filter(user => user.username !== username);
+                localStorage.setItem('staffUsers', JSON.stringify(staffUsers));
+                loadStaffList();
             }
         }
 
