@@ -55,7 +55,6 @@
         .management-table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
         .management-table th { padding: 14px 10px; text-align: left; color: var(--text-muted); font-weight: 600; white-space: nowrap; border: none; }
         .management-table td { padding: 18px 10px; color: var(--text-main); vertical-align: middle; border: none; }
-        
         .management-table tbody tr { transition: background-color 0.2s; border-radius: 8px; }
         .management-table tbody tr:hover { background-color: rgba(59, 130, 246, 0.05); }
 
@@ -90,7 +89,8 @@
         #schedules-section, #booking-section, #staff-section { display: none; }
         #admin-tickets-section { display: none; margin-top: 40px; padding-top: 25px; border: none; }
         
-        #message, #forgot-message { margin-top: 15px; text-align: center; font-size: 14px; padding: 12px; border-radius: 6px; display: none; }
+        /* رسائل النظام الموحدة */
+        .sys-message { margin-top: 15px; text-align: center; font-size: 14px; padding: 12px; border-radius: 6px; display: none; }
         .msg-success { background: rgba(34, 197, 94, 0.1); color: #16a34a; border: 1px solid rgba(34, 197, 94, 0.2); }
         .msg-error { background: rgba(239, 68, 68, 0.1); color: #dc2626; border: 1px solid rgba(239, 68, 68, 0.2); }
         
@@ -117,6 +117,8 @@
                 <div class="form-group"><label>Password</label><input type="password" id="password" required></div>
                 <button type="submit" class="primary-btn">Sign In</button>
                 
+                <div id="login-message" class="sys-message"></div>
+                
                 <div id="staff-auth-links" style="display: flex; justify-content: space-between; margin-top: 15px;">
                     <span class="toggle-link" onclick="toggleAuthMode('forgot')">Forgot Password?</span>
                     <span class="toggle-link" onclick="toggleAuthMode('register')">Create Staff Account</span>
@@ -130,6 +132,9 @@
                 <div class="form-group"><label>New Username</label><input type="text" id="reg-username" required></div>
                 <div class="form-group"><label>Password</label><input type="password" id="reg-password" required></div>
                 <button type="submit" class="primary-btn">Create Account</button>
+                
+                <div id="register-message" class="sys-message"></div>
+
                 <div style="text-align: center; margin-top: 15px;">
                     <span class="toggle-link" onclick="toggleAuthMode('login')">Back to Login</span>
                 </div>
@@ -142,7 +147,7 @@
                 <div class="form-group"><label>Registered Email</label><input type="email" id="forgot-email" placeholder="example@company.com" required></div>
                 <button type="submit" class="primary-btn">Send Reset Link</button>
                 
-                <div id="forgot-message"></div>
+                <div id="forgot-message" class="sys-message"></div>
 
                 <div style="text-align: center; margin-top: 20px;">
                     <span class="toggle-link" onclick="toggleAuthMode('login')">Back to Login</span>
@@ -207,7 +212,8 @@
                 </div>
                 <button type="submit" class="primary-btn" style="width:auto; padding: 14px 40px; margin-top: 10px;">Issue Ticket</button>
             </form>
-            <div id="message"></div>
+            
+            <div id="booking-message" class="sys-message"></div>
 
             <div id="admin-tickets-section">
                 <h3 class="logo-text" style="font-size: 20px; margin-bottom: 15px;">Booked Seats Management</h3>
@@ -284,12 +290,28 @@
             localStorage.setItem('appTheme', newTheme);
         }
 
+        // --- UI Message Helper ---
+        function showMessage(elementId, text, isSuccess) {
+            const msgDiv = document.getElementById(elementId);
+            msgDiv.style.display = 'block';
+            msgDiv.className = isSuccess ? 'sys-message msg-success' : 'sys-message msg-error';
+            msgDiv.innerHTML = text;
+        }
+        
+        function hideAllMessages() {
+            document.getElementById('login-message').style.display = 'none';
+            document.getElementById('register-message').style.display = 'none';
+            document.getElementById('forgot-message').style.display = 'none';
+            document.getElementById('booking-message').style.display = 'none';
+        }
+
         // --- Auth System ---
         function setRole(role) {
             currentRole = role;
             document.getElementById('btn-admin').className = role === 'admin' ? 'role-btn active' : 'role-btn';
             document.getElementById('btn-staff').className = role === 'staff' ? 'role-btn active' : 'role-btn';
             document.getElementById('staff-auth-links').style.display = role === 'staff' ? 'flex' : 'none';
+            hideAllMessages();
         }
 
         function toggleAuthMode(mode) {
@@ -297,53 +319,61 @@
             document.getElementById('register-form-area').style.display = mode === 'register' ? 'block' : 'none';
             document.getElementById('forgot-form-area').style.display = mode === 'forgot' ? 'block' : 'none';
             
-            document.getElementById('forgot-message').style.display = 'none';
+            hideAllMessages();
             
             if(mode === 'login') document.getElementById('login-subtitle').innerText = 'Secure System Access';
             if(mode === 'register') document.getElementById('login-subtitle').innerText = 'Create New Staff Account';
             if(mode === 'forgot') document.getElementById('login-subtitle').innerText = 'Reset Password';
         }
 
-        function handleRegister(event) {
+        async function handleRegister(event) {
             event.preventDefault();
+            hideAllMessages();
             const e = document.getElementById('reg-email').value.toLowerCase().trim();
             const u = document.getElementById('reg-username').value.toLowerCase().trim();
             const p = document.getElementById('reg-password').value;
             
-            let staffUsers = JSON.parse(localStorage.getItem('staffUsers')) || [];
-            
-            if(u === 'staff' || staffUsers.find(user => user.username === u || user.email === e)) {
-                alert('Username or Email already exists!');
+            if(u === 'staff' || u === 'admin') {
+                showMessage('register-message', 'This username is reserved by the system!', false);
                 return;
             }
 
-            staffUsers.push({ email: e, username: u, password: p });
-            localStorage.setItem('staffUsers', JSON.stringify(staffUsers));
-            alert('Staff account created successfully! You can now login.');
-            
-            document.getElementById('reg-email').value = '';
-            document.getElementById('reg-username').value = '';
-            document.getElementById('reg-password').value = '';
-            toggleAuthMode('login');
+            try {
+                const res = await fetch(`${API_URL}/staff`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username: u, email: e, password: p })
+                });
+                
+                if(res.ok) {
+                    document.getElementById('reg-email').value = '';
+                    document.getElementById('reg-username').value = '';
+                    document.getElementById('reg-password').value = '';
+                    toggleAuthMode('login');
+                    showMessage('login-message', 'Staff account created successfully! You can now login.', true);
+                } else {
+                    const result = await res.json();
+                    showMessage('register-message', 'Error: Username or Email might already exist.', false);
+                }
+            } catch(error) { 
+                showMessage('register-message', 'System Error. Check your connection to the server.', false); 
+            }
         }
 
         function handleForgotPassword(event) {
             event.preventDefault();
+            hideAllMessages();
             const email = document.getElementById('forgot-email').value;
-            const msgDiv = document.getElementById('forgot-message');
             
-            msgDiv.style.display = 'block';
-            msgDiv.className = 'msg-success';
-            msgDiv.innerHTML = `If an account exists for <strong>${email}</strong>, a password reset link has been sent.`;
-            
+            showMessage('forgot-message', `If an account exists for <strong>${email}</strong>, a password reset link has been sent.`, true);
             document.getElementById('forgot-email').value = '';
         }
 
-        function handleLogin(event) {
+        async function handleLogin(event) {
             event.preventDefault();
+            hideAllMessages();
             const u = document.getElementById('username').value.toLowerCase().trim();
             const p = document.getElementById('password').value;
-            
             let loginSuccessFlag = false;
 
             if (currentRole === 'admin') {
@@ -351,22 +381,26 @@
             } else {
                 if (u === 'staff' && p === 'staff123') loginSuccessFlag = true;
                 else {
-                    let staffUsers = JSON.parse(localStorage.getItem('staffUsers')) || [];
-                    const foundUser = staffUsers.find(user => user.username === u && user.password === p);
-                    if(foundUser) loginSuccessFlag = true;
+                    try {
+                        const res = await fetch(`${API_URL}/staff`);
+                        const staffUsers = await res.json();
+                        const foundUser = staffUsers.find(user => user.username === u && user.password === p);
+                        if(foundUser) loginSuccessFlag = true;
+                    } catch(e) {}
                 }
             }
 
             if(loginSuccessFlag) {
                 launchApp();
             } else {
-                alert('Invalid Credentials! Check username and password.');
+                showMessage('login-message', 'Invalid Credentials! Check your username and password.', false);
             }
         }
 
         function launchApp() {
             document.getElementById('login-section').style.display = 'none';
             document.getElementById('main-app').style.display = 'block';
+            hideAllMessages();
             
             if (currentRole === 'staff') {
                 document.getElementById('admin-tabs').style.display = 'none';
@@ -390,6 +424,8 @@
             document.getElementById('booking-section').style.display = tab === 'booking' ? 'block' : 'none';
             document.getElementById('staff-section').style.display = tab === 'staff' ? 'block' : 'none';
             
+            hideAllMessages();
+
             if(currentRole === 'admin') {
                 document.getElementById('tab-schedules').className = tab === 'schedules' ? 'tab active' : 'tab';
                 document.getElementById('tab-booking').className = tab === 'booking' ? 'tab active' : 'tab';
@@ -405,13 +441,11 @@
             if(tab === 'staff') loadStaffList();
         }
 
-        // --- Load Schedules Table ---
         async function loadSchedules() {
             const res = await fetch(`${API_URL}/trains`);
             const trains = await res.json();
             const list = document.getElementById('scheduleList');
             list.innerHTML = '';
-            
             trains.forEach(t => {
                 const dbStatus = t.status || 'On Time';
                 let statusClass = 'status-on-time';
@@ -456,13 +490,11 @@
             closeEditModal(); loadSchedules();
         }
 
-        // --- Booking Features ---
         async function loadBookingTrains() {
             const res = await fetch(`${API_URL}/trains`);
             const trains = await res.json();
             const list = document.getElementById('train-selection-list');
             list.innerHTML = '';
-            
             trains.forEach(t => {
                 const dbStatus = t.status || 'On Time';
                 const isUnavailable = t.availableSeats === 0 || dbStatus === 'Cancelled';
@@ -491,23 +523,28 @@
 
         async function bookTicket(event) {
             event.preventDefault();
-            const msg = document.getElementById('message');
+            hideAllMessages();
             const payload = { trainID: document.getElementById('trainID').value, passengerID: document.getElementById('passengerID').value, name: document.getElementById('name').value, contactNumber: document.getElementById('contact').value };
             
-            if(!payload.trainID || payload.trainID.includes('Select')) { alert('Please select a train from the list first.'); return; }
+            if(!payload.trainID || payload.trainID.includes('Select')) { 
+                showMessage('booking-message', 'Please select a route from the list first.', false);
+                return; 
+            }
+            
             const res = await fetch(`${API_URL}/book`, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(payload) });
             const result = await res.json();
-            msg.style.display = 'block';
+            
             if(res.ok) {
-                msg.className = 'msg-success'; msg.innerHTML = `Reservation Confirmed! PNR: <strong>${result.ticketNumber}</strong>`;
+                showMessage('booking-message', `Reservation Confirmed! PNR: <strong>${result.ticketNumber}</strong>`, true);
                 document.getElementById('bookingForm').reset();
                 document.getElementById('trainID').value = '';
                 document.getElementById('trainID').style.backgroundColor = 'var(--border-color)';
                 loadBookingTrains(); if(currentRole === 'admin') loadTickets(); 
-            } else { msg.className = 'msg-error'; msg.innerHTML = result.message || 'Error processing reservation.'; }
+            } else { 
+                showMessage('booking-message', result.message || 'Error processing reservation.', false);
+            }
         }
 
-        // --- Ticket Management ---
         async function loadTickets() {
             const res = await fetch(`${API_URL}/tickets`);
             const tickets = await res.json();
@@ -534,46 +571,38 @@
             }
         }
 
-        // --- Staff Management (Admin Only) ---
-        function loadStaffList() {
+        async function loadStaffList() {
             const list = document.getElementById('staffList');
-            list.innerHTML = '';
-            
-            list.innerHTML += `
+            list.innerHTML = `
                 <tr>
-                    <td>
-                        <span class="text-bold">staff</span>
-                        <span class="text-small">System Default Account</span>
-                    </td>
+                    <td><span class="text-bold">staff</span><span class="text-small">System Default Account</span></td>
                     <td style="color: var(--text-muted);">staff123</td>
                     <td><span class="status status-on-time">Staff</span></td>
                     <td style="text-align:center; width: 100px;"><span style="color:var(--text-muted); font-size: 11px;">Protected</span></td>
                 </tr>
             `;
 
-            let staffUsers = JSON.parse(localStorage.getItem('staffUsers')) || [];
-            staffUsers.forEach(user => {
-                list.innerHTML += `
-                    <tr>
-                        <td>
-                            <span class="text-bold">${user.username}</span>
-                            <span class="text-small">${user.email}</span>
-                        </td>
-                        <td style="color: var(--text-muted);">${user.password}</td>
-                        <td><span class="status status-on-time">Staff</span></td>
-                        <td style="text-align:center; width: 100px;">
-                            <button class="action-btn" onclick="deleteStaff('${user.username}')" title="Delete Staff Account">🗑️</button>
-                        </td>
-                    </tr>
-                `;
-            });
+            try {
+                const res = await fetch(`${API_URL}/staff`);
+                const staffUsers = await res.json();
+                staffUsers.forEach(user => {
+                    list.innerHTML += `
+                        <tr>
+                            <td><span class="text-bold">${user.username}</span><span class="text-small">${user.email}</span></td>
+                            <td style="color: var(--text-muted);">${user.password}</td>
+                            <td><span class="status status-on-time">Staff</span></td>
+                            <td style="text-align:center; width: 100px;">
+                                <button class="action-btn" onclick="deleteStaff('${user.username}')" title="Delete Staff Account">🗑️</button>
+                            </td>
+                        </tr>
+                    `;
+                });
+            } catch(e) { console.error("Error loading staff", e); }
         }
 
-        function deleteStaff(username) {
+        async function deleteStaff(username) {
             if(confirm(`Are you sure you want to revoke access for '${username}'?`)) {
-                let staffUsers = JSON.parse(localStorage.getItem('staffUsers')) || [];
-                staffUsers = staffUsers.filter(user => user.username !== username);
-                localStorage.setItem('staffUsers', JSON.stringify(staffUsers));
+                await fetch(`${API_URL}/staff/${username}`, { method: 'DELETE' });
                 loadStaffList();
             }
         }
