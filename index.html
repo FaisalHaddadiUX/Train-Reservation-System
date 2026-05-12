@@ -90,7 +90,7 @@
         #schedules-section, #booking-section, #staff-section { display: none; }
         #admin-tickets-section { display: none; margin-top: 40px; padding-top: 25px; border: none; }
         
-        #message { margin-top: 15px; text-align: center; font-size: 14px; padding: 12px; border-radius: 6px; display: none; }
+        #message, #forgot-message { margin-top: 15px; text-align: center; font-size: 14px; padding: 12px; border-radius: 6px; display: none; }
         .msg-success { background: rgba(34, 197, 94, 0.1); color: #16a34a; border: 1px solid rgba(34, 197, 94, 0.2); }
         .msg-error { background: rgba(239, 68, 68, 0.1); color: #dc2626; border: 1px solid rgba(239, 68, 68, 0.2); }
         
@@ -108,8 +108,8 @@
         
         <div id="login-form-area">
             <div class="role-selector">
-                <button type="button" id="btn-admin" class="role-btn active" onclick="setRole('admin')">👔 Admin</button>
-                <button type="button" id="btn-staff" class="role-btn" onclick="setRole('staff')">👨‍💼 Staff</button>
+                <button type="button" id="btn-admin" class="role-btn" onclick="setRole('admin')">👔 Admin</button>
+                <button type="button" id="btn-staff" class="role-btn active" onclick="setRole('staff')">👨‍💼 Staff</button>
             </div>
 
             <form onsubmit="handleLogin(event)">
@@ -117,7 +117,7 @@
                 <div class="form-group"><label>Password</label><input type="password" id="password" required></div>
                 <button type="submit" class="primary-btn">Sign In</button>
                 
-                <div id="staff-auth-links" style="display: none; justify-content: space-between; margin-top: 15px;">
+                <div id="staff-auth-links" style="display: flex; justify-content: space-between; margin-top: 15px;">
                     <span class="toggle-link" onclick="toggleAuthMode('forgot')">Forgot Password?</span>
                     <span class="toggle-link" onclick="toggleAuthMode('register')">Create Staff Account</span>
                 </div>
@@ -141,7 +141,10 @@
                 <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 20px; line-height: 1.5;">Enter your registered email address and we will send you a link to reset your password.</p>
                 <div class="form-group"><label>Registered Email</label><input type="email" id="forgot-email" placeholder="example@company.com" required></div>
                 <button type="submit" class="primary-btn">Send Reset Link</button>
-                <div style="text-align: center; margin-top: 15px;">
+                
+                <div id="forgot-message"></div>
+
+                <div style="text-align: center; margin-top: 20px;">
                     <span class="toggle-link" onclick="toggleAuthMode('login')">Back to Login</span>
                 </div>
             </form>
@@ -263,7 +266,7 @@
 
     <script>
         const API_URL = '/api'; 
-        let currentRole = 'admin';
+        let currentRole = 'staff'; 
 
         // --- Theme System ---
         function initTheme() {
@@ -286,7 +289,6 @@
             currentRole = role;
             document.getElementById('btn-admin').className = role === 'admin' ? 'role-btn active' : 'role-btn';
             document.getElementById('btn-staff').className = role === 'staff' ? 'role-btn active' : 'role-btn';
-            // الروابط تظهر للموظف فقط، الإدمن ما يقدر يسجل ولا ينسى باسوورده
             document.getElementById('staff-auth-links').style.display = role === 'staff' ? 'flex' : 'none';
         }
 
@@ -294,6 +296,8 @@
             document.getElementById('login-form-area').style.display = mode === 'login' ? 'block' : 'none';
             document.getElementById('register-form-area').style.display = mode === 'register' ? 'block' : 'none';
             document.getElementById('forgot-form-area').style.display = mode === 'forgot' ? 'block' : 'none';
+            
+            document.getElementById('forgot-message').style.display = 'none';
             
             if(mode === 'login') document.getElementById('login-subtitle').innerText = 'Secure System Access';
             if(mode === 'register') document.getElementById('login-subtitle').innerText = 'Create New Staff Account';
@@ -326,10 +330,13 @@
         function handleForgotPassword(event) {
             event.preventDefault();
             const email = document.getElementById('forgot-email').value;
-            // رسالة وهمية تفاعلية
-            alert(`If an account exists for ${email}, a password reset link has been sent. Please check your inbox.`);
+            const msgDiv = document.getElementById('forgot-message');
+            
+            msgDiv.style.display = 'block';
+            msgDiv.className = 'msg-success';
+            msgDiv.innerHTML = `If an account exists for <strong>${email}</strong>, a password reset link has been sent.`;
+            
             document.getElementById('forgot-email').value = '';
-            toggleAuthMode('login');
         }
 
         function handleLogin(event) {
@@ -532,7 +539,6 @@
             const list = document.getElementById('staffList');
             list.innerHTML = '';
             
-            // الحساب الأساسي المحمي
             list.innerHTML += `
                 <tr>
                     <td>
@@ -545,7 +551,6 @@
                 </tr>
             `;
 
-            // الحسابات اللي تم إنشاؤها
             let staffUsers = JSON.parse(localStorage.getItem('staffUsers')) || [];
             staffUsers.forEach(user => {
                 list.innerHTML += `
