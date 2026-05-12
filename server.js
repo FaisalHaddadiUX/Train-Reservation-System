@@ -16,35 +16,21 @@ app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'index.html'));
 });
 
+// --- إدارة القطارات ---
 app.get('/api/trains', async (req, res) => {
     const { data, error } = await supabase.from('trains').select('*').order('trainID');
     if (error) return res.status(500).json({ error: error.message });
     res.json(data);
 });
 
-app.get('/api/stats', async (req, res) => {
-    const { data, error } = await supabase.from('tickets').select('ticketNumber');
+app.patch('/api/trains/:id', async (req, res) => {
+    const { status, price } = req.body;
+    const { error } = await supabase.from('trains').update({ status, price }).eq('trainID', req.params.id);
     if (error) return res.status(500).json({ error: error.message });
-    res.json({ totalBookings: data ? data.length : 0 });
+    res.json({ message: 'Train updated successfully.' });
 });
 
-app.get('/api/tickets', async (req, res) => {
-    const { data: tickets } = await supabase.from('tickets').select('*').order('bookingDate', { ascending: false });
-    const { data: trains } = await supabase.from('trains').select('*');
-    const { data: passengers } = await supabase.from('passengers').select('*');
-
-    const result = (tickets || []).map(t => {
-        const train = (trains || []).find(tr => tr.trainID === t.trainID) || {};
-        const pass = (passengers || []).find(p => p.passengerID === t.passengerID) || {};
-        return {
-            ...t,
-            trains: { trainName: train.trainName || 'Unknown', departureDate: train.departureDate || '' },
-            passengers: { name: pass.name || 'Unknown' }
-        };
-    });
-    res.json(result);
-});
-
+// --- الحجوزات وإدارة التذاكر ---
 app.post('/api/book', async (req, res) => {
     const { trainID, passengerID, name, contactNumber } = req.body;
     const { data: train, error: trainError } = await supabase.from('trains').select('availableSeats').eq('trainID', trainID).single();
@@ -55,6 +41,19 @@ app.post('/api/book', async (req, res) => {
     await supabase.from('trains').update({ availableSeats: train.availableSeats - 1 }).eq('trainID', trainID);
 
     res.json({ message: 'Booking successful!', ticketNumber: ticket.ticketNumber });
+});
+
+app.get('/api/tickets', async (req, res) => {
+    const { data: tickets } = await supabase.from('tickets').select('*').order('bookingDate', { ascending: false });
+    const { data: trains } = await supabase.from('trains').select('*');
+    const { data: passengers } = await supabase.from('passengers').select('*');
+
+    const result = (tickets || []).map(t => {
+        const train = (trains || []).find(tr => tr.trainID === t.trainID) || {};
+        const pass = (passengers || []).find(p => p.passengerID === t.passengerID) || {};
+        return { ...t, trains: { trainName: train.trainName || 'Unknown', departureDate: train.departureDate || '' }, passengers: { name: pass.name || 'Unknown' } };
+    });
+    res.json(result);
 });
 
 app.delete('/api/tickets/:id', async (req, res) => {
@@ -72,28 +71,31 @@ app.delete('/api/tickets/:id', async (req, res) => {
     res.status(500).json({ error: 'Failed to delete.' });
 });
 
-
-
-app.delete('/api/trains/:id', async (req, res) => {
-    const { error } = await supabase.from('trains').delete().eq('trainID', req.params.id);
+// --- حسابات الموظفين (Staff) ---
+app.get('/api/staff', async (req, res) => {
+    const { data, error } = await supabase.from('staff_users').select('*');
     if (error) return res.status(500).json({ error: error.message });
-    res.json({ message: 'Train route deleted successfully.' });
+    res.json(data || []);
 });
 
-
-app.patch('/api/trains/:id', async (req, res) => {
-    const { status, price } = req.body;
-    const { error } = await supabase.from('trains').update({ status, price }).eq('trainID', req.params.id);
-    if (error) return res.status(500).json({ error: error.message });
-    res.json({ message: 'Train updated successfully.' });
+app.post('/api/staff', async (req, res) => {
+    const { username, email, password } = req.body;
+    const { error } = await supabase.from('staff_users').insert([{ username, email, password }]);
+    if (error) return res.status(400).json({ message: 'Error: Username or Email might already exist.' });
+    res.json({ message: 'Staff created successfully' });
 });
 
-const PORT = 3000; 
+app.delete('/api/staff/:username', async (req, res) => {
+    const { error } = await supabase.from('staff_users').delete().eq('username', req.params.username);
+    if (error) return res.status(500).json({ error: error.message });
+    res.json({ message: 'Staff deleted successfully' });
+});
+
+// --- تشغيل السيرفر ---
+const PORT = 3001;
 const server = app.listen(PORT, () => {
     console.log(`✅ Server is successfully running on http://localhost:${PORT}`);
-    console.log(`⏳ Waiting for requests... (DO NOT CLOSE THIS TERMINAL)`);
 });
-
 
 server.on('error', (err) => {
     console.error('❌ Server Error:', err);
