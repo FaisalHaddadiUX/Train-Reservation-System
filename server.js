@@ -16,7 +16,7 @@ app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'index.html'));
 });
 
-// --- إدارة القطارات ---
+
 app.get('/api/trains', async (req, res) => {
     const { data, error } = await supabase.from('trains').select('*').order('trainID');
     if (error) return res.status(500).json({ error: error.message });
@@ -30,7 +30,7 @@ app.patch('/api/trains/:id', async (req, res) => {
     res.json({ message: 'Train updated successfully.' });
 });
 
-// --- الحجوزات وإدارة التذاكر ---
+
 app.post('/api/book', async (req, res) => {
     const { trainID, passengerID, name, contactNumber } = req.body;
     const { data: train, error: trainError } = await supabase.from('trains').select('availableSeats').eq('trainID', trainID).single();
@@ -71,7 +71,7 @@ app.delete('/api/tickets/:id', async (req, res) => {
     res.status(500).json({ error: 'Failed to delete.' });
 });
 
-// --- حسابات الموظفين (Staff) ---
+
 app.get('/api/staff', async (req, res) => {
     const { data, error } = await supabase.from('staff_users').select('*');
     if (error) return res.status(500).json({ error: error.message });
@@ -91,8 +91,41 @@ app.delete('/api/staff/:username', async (req, res) => {
     res.json({ message: 'Staff deleted successfully' });
 });
 
-// --- تشغيل السيرفر ---
-const PORT = 3001;
+app.get('/api/reports', async (req, res) => {
+    
+    const { data: trains } = await supabase.from('trains').select('*');
+    const { data: tickets } = await supabase.from('tickets').select('*');
+
+    let totalRevenue = 0;
+    let occupancyData = [];
+
+    if (trains && tickets) {
+       
+        tickets.forEach(ticket => {
+            const train = trains.find(t => t.trainID === ticket.trainID);
+            if (train) totalRevenue += Number(train.price);
+        });
+
+   
+        occupancyData = trains.map(t => {
+            const bookedSeats = t.totalCapacity - t.availableSeats;
+          
+            const occupancyRate = t.totalCapacity > 0 ? ((bookedSeats / t.totalCapacity) * 100).toFixed(1) : 0;
+            
+            return {
+                trainID: t.trainID,
+                trainName: t.trainName || 'Unknown Route',
+                totalCapacity: t.totalCapacity,
+                bookedSeats: bookedSeats,
+                occupancyRate: occupancyRate
+            };
+        });
+    }
+
+    res.json({ totalRevenue, occupancyData });
+});
+
+const PORT = 3000;
 const server = app.listen(PORT, () => {
     console.log(`✅ Server is successfully running on http://localhost:${PORT}`);
 });
