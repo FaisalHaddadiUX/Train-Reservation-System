@@ -25,7 +25,6 @@
         .logo-text { font-size: 28px; font-weight: 800; color: var(--text-main); }
         .subtitle { color: var(--text-muted); font-size: 14px; margin-bottom: 30px; }
 
-        /* Login & Registration */
         .role-selector { display: flex; gap: 15px; margin-bottom: 25px; }
         .role-btn { flex: 1; padding: 15px; background-color: var(--bg-input); border: 1px solid var(--border-color); color: var(--text-main); border-radius: 10px; font-weight: 600; cursor: pointer; transition: 0.3s; display: flex; justify-content: center; align-items: center; gap: 8px; font-size: 15px;}
         .role-btn.active { background-color: rgba(59, 130, 246, 0.15); border-color: var(--primary-blue); color: var(--primary-blue); }
@@ -41,27 +40,24 @@
         .toggle-link { color: var(--primary-blue); font-size: 13px; font-weight: 600; cursor: pointer; text-decoration: none; transition: 0.2s; }
         .toggle-link:hover { text-decoration: underline; }
 
-        /* Dashboard Tabs */
         #login-section { max-width: 440px; margin: auto; }
         #main-app { display: none; width: 100%; padding: 30px; }
         .admin-header { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 20px; }
         
-        .tabs { display: flex; margin-bottom: 25px; gap: 15px; border: none; outline: none; }
+        .tabs { display: flex; margin-bottom: 25px; gap: 15px; border: none; outline: none; flex-wrap: wrap; }
         .tab { padding: 10px 20px; color: var(--text-muted); cursor: pointer; font-weight: 600; border-radius: 8px; transition: 0.2s; border: none; }
         .tab:hover { color: var(--text-main); background-color: var(--bg-input); }
         .tab.active { color: var(--primary-blue); background-color: rgba(59, 130, 246, 0.1); }
 
-        /* Tables */
         .management-table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
         .management-table th { padding: 14px 10px; text-align: left; color: var(--text-muted); font-weight: 600; white-space: nowrap; border: none; }
         .management-table td { padding: 18px 10px; color: var(--text-main); vertical-align: middle; border: none; }
         .management-table tbody tr { transition: background-color 0.2s; border-radius: 8px; }
         .management-table tbody tr:hover { background-color: rgba(59, 130, 246, 0.05); }
 
-        .text-bold { font-weight: 700; display: block;}
-        .text-small { font-size: 11.5px; color: var(--text-muted); display: block; margin-top: 4px; }
+        .text-bold { font-weight: 700; }
+        .text-small { font-size: 11.5px; color: var(--text-muted); display: block; margin-top: 4px; font-weight: normal; }
 
-        /* Statuses */
         .status { padding: 6px 12px; border-radius: 6px; font-size: 12px; font-weight: 700; display: inline-block; white-space: nowrap; }
         .status-on-time { background: rgba(34, 197, 94, 0.1); color: #16a34a; }
         .status-delayed { background: rgba(245, 158, 11, 0.1); color: #d97706; }
@@ -70,7 +66,9 @@
         .action-btn { cursor: pointer; border: none; background: none; font-size: 18px; transition: 0.2s; padding: 5px; opacity: 0.8; }
         .action-btn:hover { transform: scale(1.15); opacity: 1; }
 
-        /* Booking Train Selection List */
+        .search-bar { width: 100%; padding: 14px 16px; margin-bottom: 20px; border-radius: 8px; border: 1px solid var(--border-color); background-color: var(--bg-input); color: var(--text-main); font-family: 'Inter'; font-weight: 500;}
+        .search-bar:focus { outline: none; border-color: var(--primary-blue); }
+
         #train-selection-list { max-height: 250px; overflow-y: auto; margin-bottom: 25px; padding-right: 5px; }
         #train-selection-list::-webkit-scrollbar { width: 6px; }
         #train-selection-list::-webkit-scrollbar-thumb { background: var(--border-color); border-radius: 6px; }
@@ -81,18 +79,17 @@
         button.select-btn { background: transparent; color: var(--primary-blue); border: 1px solid var(--primary-blue); padding: 8px 18px; border-radius: 6px; cursor: pointer; font-weight: 600; }
         button.select-btn:hover { background: var(--primary-blue); color: white; }
 
-        /* Custom Modal for Editing */
-        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.6); z-index: 2000; justify-content: center; align-items: center; backdrop-filter: blur(4px); }
-        .modal-content { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 16px; padding: 30px; width: 100%; max-width: 400px; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5); }
-        .modal-title { font-size: 20px; font-weight: 800; margin-bottom: 20px; color: var(--text-main); }
+        .widget-container { display: flex; gap: 20px; margin-bottom: 30px; }
+        .widget { flex: 1; background: var(--bg-input); border: 1px solid var(--border-color); border-radius: 12px; padding: 25px; text-align: center; }
+        .widget-title { color: var(--text-muted); font-size: 14px; font-weight: 600; margin-bottom: 10px; }
+        .widget-value { color: var(--primary-blue); font-size: 32px; font-weight: 800; }
 
-        #schedules-section, #booking-section, #staff-section { display: none; }
-        #admin-tickets-section { display: none; margin-top: 40px; padding-top: 25px; border: none; }
+        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.7); z-index: 2000; justify-content: center; align-items: center; backdrop-filter: blur(5px); }
+        .modal-content { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 16px; padding: 40px 30px; width: 100%; max-width: 400px; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5); text-align: center; }
+        .modal-title { font-size: 22px; font-weight: 800; margin-bottom: 15px; color: var(--text-main); }
         
-        /* رسائل النظام الموحدة */
-        .sys-message { margin-top: 15px; text-align: center; font-size: 14px; padding: 12px; border-radius: 6px; display: none; }
-        .msg-success { background: rgba(34, 197, 94, 0.1); color: #16a34a; border: 1px solid rgba(34, 197, 94, 0.2); }
-        .msg-error { background: rgba(239, 68, 68, 0.1); color: #dc2626; border: 1px solid rgba(239, 68, 68, 0.2); }
+        #schedules-section, #booking-section, #staff-section, #reports-section { display: none; }
+        #admin-tickets-section { display: none; margin-top: 40px; padding-top: 25px; border-top: 1px solid var(--border-color); }
         
         .form-row { display: flex; gap: 15px; }
         .form-row .form-group { flex: 1; }
@@ -101,6 +98,36 @@
 <body>
 
     <button class="theme-toggle" onclick="toggleTheme()" id="themeBtn"></button>
+
+    <div class="modal-overlay" id="smartModal">
+        <div class="modal-content">
+            <div id="smartModalIcon" style="font-size: 55px; margin-bottom: 15px;"></div>
+            <div class="modal-title" id="smartModalTitle"></div>
+            <p id="smartModalMessage" style="color: var(--text-muted); font-size: 14.5px; line-height: 1.6; margin-bottom: 30px;"></p>
+            <div id="smartModalActions" style="display: flex; gap: 10px; justify-content: center;">
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="editModal">
+        <div class="modal-content" style="text-align: left; padding: 30px;">
+            <div class="modal-title" style="text-align: left; font-size: 20px;">Edit Route: <span id="editTrainIdDisplay" style="color:var(--primary-blue);"></span></div>
+            <input type="hidden" id="editTrainId">
+            <div class="form-group"><label>Ticket Price (SAR)</label><input type="number" id="editPrice" step="0.01"></div>
+            <div class="form-group">
+                <label>Route Status</label>
+                <select id="editStatus">
+                    <option value="On Time">🟢 On Time</option>
+                    <option value="Delayed">🟠 Delayed</option>
+                    <option value="Cancelled">🔴 Cancelled</option>
+                </select>
+            </div>
+            <div class="form-row" style="margin-top: 30px;">
+                <button onclick="saveTrainEdit()" class="primary-btn" style="flex:2;">Save</button>
+                <button onclick="closeEditModal()" class="primary-btn" style="flex:1; background-color:var(--border-color); color:var(--text-main);">Cancel</button>
+            </div>
+        </div>
+    </div>
 
     <div class="card" id="login-section">
         <div class="logo-text" style="text-align: center; margin-bottom: 10px;">Train Booking</div>
@@ -116,9 +143,6 @@
                 <div class="form-group"><label>Username</label><input type="text" id="username" required></div>
                 <div class="form-group"><label>Password</label><input type="password" id="password" required></div>
                 <button type="submit" class="primary-btn">Sign In</button>
-                
-                <div id="login-message" class="sys-message"></div>
-                
                 <div id="staff-auth-links" style="display: flex; justify-content: space-between; margin-top: 15px;">
                     <span class="toggle-link" onclick="toggleAuthMode('forgot')">Forgot Password?</span>
                     <span class="toggle-link" onclick="toggleAuthMode('register')">Create Staff Account</span>
@@ -132,9 +156,6 @@
                 <div class="form-group"><label>New Username</label><input type="text" id="reg-username" required></div>
                 <div class="form-group"><label>Password</label><input type="password" id="reg-password" required></div>
                 <button type="submit" class="primary-btn">Create Account</button>
-                
-                <div id="register-message" class="sys-message"></div>
-
                 <div style="text-align: center; margin-top: 15px;">
                     <span class="toggle-link" onclick="toggleAuthMode('login')">Back to Login</span>
                 </div>
@@ -146,9 +167,6 @@
                 <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 20px; line-height: 1.5;">Enter your registered email address and we will send you a link to reset your password.</p>
                 <div class="form-group"><label>Registered Email</label><input type="email" id="forgot-email" placeholder="example@company.com" required></div>
                 <button type="submit" class="primary-btn">Send Reset Link</button>
-                
-                <div id="forgot-message" class="sys-message"></div>
-
                 <div style="text-align: center; margin-top: 20px;">
                     <span class="toggle-link" onclick="toggleAuthMode('login')">Back to Login</span>
                 </div>
@@ -169,6 +187,7 @@
             <div class="tab active" onclick="switchTab('schedules')" id="tab-schedules">🚆 Train Schedules</div>
             <div class="tab" onclick="switchTab('booking')" id="tab-booking">🎫 Ticketing & Bookings</div>
             <div class="tab" onclick="switchTab('staff')" id="tab-staff">👥 Staff Management</div>
+            <div class="tab" onclick="switchTab('reports')" id="tab-reports">📊 Reports & Analytics</div>
         </div>
 
         <div id="schedules-section">
@@ -179,9 +198,9 @@
                             <th>Train</th>
                             <th>Route</th>
                             <th>Timing</th>
-                            <th>Seats</th>
-                            <th>Price</th>
-                            <th>Status</th>
+                            <th style="text-align: center;">Seats</th>
+                            <th style="text-align: center;">Price</th>
+                            <th style="text-align: center;">Status</th>
                             <th style="text-align: center; width: 100px;" id="actions-header">Actions</th>
                         </tr>
                     </thead>
@@ -191,6 +210,8 @@
         </div>
 
         <div id="booking-section">
+            <input type="text" id="trainSearch" class="search-bar" placeholder="🔍 Search trains by route or ID..." onkeyup="filterTrains()">
+            
             <div id="train-selection-list"></div>
             <form onsubmit="bookTicket(event)">
                 <div class="form-group">
@@ -212,8 +233,6 @@
                 </div>
                 <button type="submit" class="primary-btn" style="width:auto; padding: 14px 40px; margin-top: 10px;">Issue Ticket</button>
             </form>
-            
-            <div id="booking-message" class="sys-message"></div>
 
             <div id="admin-tickets-section">
                 <h3 class="logo-text" style="font-size: 20px; margin-bottom: 15px;">Booked Seats Management</h3>
@@ -223,7 +242,7 @@
                             <tr>
                                 <th>PNR #</th>
                                 <th>Passenger Name</th>
-                                <th>Route ID</th>
+                                <th style="text-align: center;">Route ID</th>
                                 <th style="text-align: center; width: 100px;">Cancel Seat</th>
                             </tr>
                         </thead>
@@ -240,7 +259,7 @@
                         <tr>
                             <th>Staff Info</th>
                             <th>Password</th>
-                            <th>Role</th>
+                            <th style="text-align: center;">Role</th>
                             <th style="text-align: center; width: 100px;">Revoke Access</th>
                         </tr>
                     </thead>
@@ -248,24 +267,28 @@
                 </table>
             </div>
         </div>
-    </div>
 
-    <div class="modal-overlay" id="editModal">
-        <div class="modal-content">
-            <div class="modal-title">Edit Route: <span id="editTrainIdDisplay" style="color:var(--primary-blue);"></span></div>
-            <input type="hidden" id="editTrainId">
-            <div class="form-group"><label>Ticket Price (SAR)</label><input type="number" id="editPrice" step="0.01"></div>
-            <div class="form-group">
-                <label>Route Status</label>
-                <select id="editStatus">
-                    <option value="On Time">🟢 On Time</option>
-                    <option value="Delayed">🟠 Delayed</option>
-                    <option value="Cancelled">🔴 Cancelled</option>
-                </select>
+        <div id="reports-section">
+            <div class="widget-container">
+                <div class="widget">
+                    <div class="widget-title">Total System Revenue</div>
+                    <div class="widget-value" id="total-revenue">0 SAR</div>
+                </div>
             </div>
-            <div class="form-row" style="margin-top: 30px;">
-                <button onclick="saveTrainEdit()" class="primary-btn" style="flex:2;">Save</button>
-                <button onclick="closeEditModal()" class="primary-btn" style="flex:1; background-color:var(--border-color); color:var(--text-main);">Cancel</button>
+
+            <h3 class="logo-text" style="font-size: 20px; margin-bottom: 15px;">Train Occupancy Rates</h3>
+            <div style="overflow-x: auto;">
+                <table class="management-table">
+                    <thead>
+                        <tr>
+                            <th>Train Route</th>
+                            <th style="text-align: center;">Total Capacity</th>
+                            <th style="text-align: center;">Booked Seats</th>
+                            <th style="text-align: center;">Occupancy Rate</th>
+                        </tr>
+                    </thead>
+                    <tbody id="occupancyList"></tbody>
+                </table>
             </div>
         </div>
     </div>
@@ -274,7 +297,6 @@
         const API_URL = '/api'; 
         let currentRole = 'staff'; 
 
-        // --- Theme System ---
         function initTheme() {
             const savedTheme = localStorage.getItem('appTheme') || 'dark';
             document.body.setAttribute('data-theme', savedTheme);
@@ -290,36 +312,56 @@
             localStorage.setItem('appTheme', newTheme);
         }
 
-        // --- UI Message Helper ---
-        function showMessage(elementId, text, isSuccess) {
-            const msgDiv = document.getElementById(elementId);
-            msgDiv.style.display = 'block';
-            msgDiv.className = isSuccess ? 'sys-message msg-success' : 'sys-message msg-error';
-            msgDiv.innerHTML = text;
-        }
-        
-        function hideAllMessages() {
-            document.getElementById('login-message').style.display = 'none';
-            document.getElementById('register-message').style.display = 'none';
-            document.getElementById('forgot-message').style.display = 'none';
-            document.getElementById('booking-message').style.display = 'none';
+        function showSmartModal(type, title, message, onConfirm = null) {
+            const modal = document.getElementById('smartModal');
+            const icon = document.getElementById('smartModalIcon');
+            const actions = document.getElementById('smartModalActions');
+            
+            document.getElementById('smartModalTitle').innerHTML = title;
+            document.getElementById('smartModalMessage').innerHTML = message;
+            actions.innerHTML = ''; 
+            
+            if(type === 'success') {
+                icon.innerHTML = '✅';
+                actions.innerHTML = `<button onclick="closeSmartModal()" class="primary-btn" style="width: 100%;">Done</button>`;
+            } else if(type === 'error') {
+                icon.innerHTML = '❌';
+                actions.innerHTML = `<button onclick="closeSmartModal()" class="primary-btn" style="background-color: #dc2626; width: 100%;">Close</button>`;
+            } else if(type === 'confirm') {
+                icon.innerHTML = '⚠️';
+                
+                const btnYes = document.createElement('button');
+                btnYes.className = 'primary-btn';
+                btnYes.style.backgroundColor = '#dc2626';
+                btnYes.innerText = 'Yes, Proceed';
+                btnYes.onclick = () => { onConfirm(); closeSmartModal(); };
+                
+                const btnNo = document.createElement('button');
+                btnNo.className = 'primary-btn';
+                btnNo.style.backgroundColor = 'var(--border-color)';
+                btnNo.style.color = 'var(--text-main)';
+                btnNo.innerText = 'Cancel';
+                btnNo.onclick = closeSmartModal;
+                
+                actions.appendChild(btnYes);
+                actions.appendChild(btnNo);
+            }
+            modal.style.display = 'flex';
         }
 
-        // --- Auth System ---
+        function closeSmartModal() { document.getElementById('smartModal').style.display = 'none'; }
+
         function setRole(role) {
             currentRole = role;
             document.getElementById('btn-admin').className = role === 'admin' ? 'role-btn active' : 'role-btn';
             document.getElementById('btn-staff').className = role === 'staff' ? 'role-btn active' : 'role-btn';
             document.getElementById('staff-auth-links').style.display = role === 'staff' ? 'flex' : 'none';
-            hideAllMessages();
         }
 
         function toggleAuthMode(mode) {
             document.getElementById('login-form-area').style.display = mode === 'login' ? 'block' : 'none';
             document.getElementById('register-form-area').style.display = mode === 'register' ? 'block' : 'none';
             document.getElementById('forgot-form-area').style.display = mode === 'forgot' ? 'block' : 'none';
-            
-            hideAllMessages();
             
             if(mode === 'login') document.getElementById('login-subtitle').innerText = 'Secure System Access';
             if(mode === 'register') document.getElementById('login-subtitle').innerText = 'Create New Staff Account';
@@ -328,13 +370,12 @@
 
         async function handleRegister(event) {
             event.preventDefault();
-            hideAllMessages();
             const e = document.getElementById('reg-email').value.toLowerCase().trim();
             const u = document.getElementById('reg-username').value.toLowerCase().trim();
             const p = document.getElementById('reg-password').value;
             
             if(u === 'staff' || u === 'admin') {
-                showMessage('register-message', 'This username is reserved by the system!', false);
+                showSmartModal('error', 'Registration Failed', 'This username is reserved by the system!');
                 return;
             }
 
@@ -350,28 +391,25 @@
                     document.getElementById('reg-username').value = '';
                     document.getElementById('reg-password').value = '';
                     toggleAuthMode('login');
-                    showMessage('login-message', 'Staff account created successfully! You can now login.', true);
+                    showSmartModal('success', 'Account Created', 'Staff account created successfully! You can now login.');
                 } else {
-                    const result = await res.json();
-                    showMessage('register-message', 'Error: Username or Email might already exist.', false);
+                    showSmartModal('error', 'Registration Failed', 'Username or Email might already exist.');
                 }
             } catch(error) { 
-                showMessage('register-message', 'System Error. Check your connection to the server.', false); 
+                showSmartModal('error', 'System Error', 'Could not connect to the server.');
             }
         }
 
         function handleForgotPassword(event) {
             event.preventDefault();
-            hideAllMessages();
             const email = document.getElementById('forgot-email').value;
-            
-            showMessage('forgot-message', `If an account exists for <strong>${email}</strong>, a password reset link has been sent.`, true);
+            showSmartModal('success', 'Email Sent', `If an account exists for <strong>${email}</strong>, a password reset link has been sent.`);
             document.getElementById('forgot-email').value = '';
+            toggleAuthMode('login');
         }
 
         async function handleLogin(event) {
             event.preventDefault();
-            hideAllMessages();
             const u = document.getElementById('username').value.toLowerCase().trim();
             const p = document.getElementById('password').value;
             let loginSuccessFlag = false;
@@ -390,22 +428,19 @@
                 }
             }
 
-            if(loginSuccessFlag) {
-                launchApp();
-            } else {
-                showMessage('login-message', 'Invalid Credentials! Check your username and password.', false);
-            }
+            if(loginSuccessFlag) launchApp();
+            else showSmartModal('error', 'Access Denied', 'Invalid Credentials! Check your username and password.');
         }
 
         function launchApp() {
             document.getElementById('login-section').style.display = 'none';
             document.getElementById('main-app').style.display = 'block';
-            hideAllMessages();
             
             if (currentRole === 'staff') {
                 document.getElementById('admin-tabs').style.display = 'none';
-                document.getElementById('admin-tickets-section').style.display = 'none'; 
+                document.getElementById('admin-tickets-section').style.display = 'block'; 
                 document.getElementById('actions-header').style.display = 'none'; 
+                document.getElementById('tab-reports').style.display = 'none';
                 document.getElementById('page-title').innerText = 'Ticketing System';
                 document.getElementById('page-subtitle').innerText = 'Select a route and issue tickets';
                 switchTab('booking');
@@ -413,6 +448,7 @@
                 document.getElementById('admin-tabs').style.display = 'flex';
                 document.getElementById('admin-tickets-section').style.display = 'block'; 
                 document.getElementById('actions-header').style.display = 'table-cell'; 
+                document.getElementById('tab-reports').style.display = 'block';
                 document.getElementById('page-title').innerText = 'Train Schedules';
                 document.getElementById('page-subtitle').innerText = 'View and manage routes and timings';
                 switchTab('schedules');
@@ -423,29 +459,32 @@
             document.getElementById('schedules-section').style.display = tab === 'schedules' ? 'block' : 'none';
             document.getElementById('booking-section').style.display = tab === 'booking' ? 'block' : 'none';
             document.getElementById('staff-section').style.display = tab === 'staff' ? 'block' : 'none';
+            document.getElementById('reports-section').style.display = tab === 'reports' ? 'block' : 'none';
             
-            hideAllMessages();
-
             if(currentRole === 'admin') {
                 document.getElementById('tab-schedules').className = tab === 'schedules' ? 'tab active' : 'tab';
                 document.getElementById('tab-booking').className = tab === 'booking' ? 'tab active' : 'tab';
                 document.getElementById('tab-staff').className = tab === 'staff' ? 'tab active' : 'tab';
+                document.getElementById('tab-reports').className = tab === 'reports' ? 'tab active' : 'tab';
                 
                 if(tab === 'schedules') { document.getElementById('page-title').innerText = 'Train Schedules'; document.getElementById('page-subtitle').innerText = 'View and manage routes and timings'; }
                 if(tab === 'booking') { document.getElementById('page-title').innerText = 'Ticketing System'; document.getElementById('page-subtitle').innerText = 'Manage bookings and passengers'; }
                 if(tab === 'staff') { document.getElementById('page-title').innerText = 'Staff Management'; document.getElementById('page-subtitle').innerText = 'Manage employee accounts and access'; }
+                if(tab === 'reports') { document.getElementById('page-title').innerText = 'System Reports'; document.getElementById('page-subtitle').innerText = 'Revenue and occupancy analytics'; }
             }
 
             if(tab === 'schedules') loadSchedules();
-            if(tab === 'booking') { loadBookingTrains(); if(currentRole === 'admin') loadTickets(); }
+            if(tab === 'booking') { loadBookingTrains(); loadTickets(); }
             if(tab === 'staff') loadStaffList();
+            if(tab === 'reports') loadReports();
         }
 
         async function loadSchedules() {
             const res = await fetch(`${API_URL}/trains`);
             const trains = await res.json();
             const list = document.getElementById('scheduleList');
-            list.innerHTML = '';
+            let htmlStr = '';
+            
             trains.forEach(t => {
                 const dbStatus = t.status || 'On Time';
                 let statusClass = 'status-on-time';
@@ -458,18 +497,19 @@
                         <button class="action-btn" onclick="openEditModal('${t.trainID}', '${t.price}', '${dbStatus}')" title="Edit">✏️</button>
                     </td>` : '';
 
-                list.innerHTML += `
+                htmlStr += `
                     <tr>
-                        <td class="text-bold">${t.trainID}</td>
+                        <td><span class="text-bold">${t.trainID}</span></td>
                         <td><span class="text-bold">${t.departureStation}</span><span class="text-small">to ${t.arrivalStation}</span></td>
                         <td><span class="text-bold">${t.departureDate}</span><span class="text-small">10:00 AM</span></td>
-                        <td><span class="text-bold" style="color:${t.availableSeats>0?'#16a34a':'#dc2626'}">${t.availableSeats}</span></td>
-                        <td class="text-bold">${t.price} SAR</td>
-                        <td><span class="status ${statusClass}">${finalStatus}</span></td>
+                        <td style="text-align: center;"><span class="text-bold" style="color:${t.availableSeats>0?'#16a34a':'#dc2626'}">${t.availableSeats}</span></td>
+                        <td style="text-align: center;"><span class="text-bold">${t.price} SAR</span></td>
+                        <td style="text-align: center;"><span class="status ${statusClass}">${finalStatus}</span></td>
                         ${actionsHtml}
                     </tr>
                 `;
             });
+            list.innerHTML = htmlStr;
         }
 
         function openEditModal(id, price, status) {
@@ -494,7 +534,8 @@
             const res = await fetch(`${API_URL}/trains`);
             const trains = await res.json();
             const list = document.getElementById('train-selection-list');
-            list.innerHTML = '';
+            let htmlStr = '';
+            
             trains.forEach(t => {
                 const dbStatus = t.status || 'On Time';
                 const isUnavailable = t.availableSeats === 0 || dbStatus === 'Cancelled';
@@ -502,16 +543,28 @@
                     ? `<button type="button" class="select-btn" style="border-color:#dc2626; color:#dc2626; cursor:not-allowed;" disabled>Unavailable</button>` 
                     : `<button type="button" class="select-btn" onclick="selectTrainForBooking('${t.trainID}')">Select</button>`;
 
-                list.innerHTML += `
-                    <div class="train-card">
+                htmlStr += `
+                    <div class="train-card searchable-card">
                         <div class="train-card-info">
-                            <strong>${t.trainName || 'Route'} (${t.trainID})</strong>
-                            <span>${t.departureStation} ➔ ${t.arrivalStation} | ${t.price} SAR | <strong>${t.availableSeats} Seats Left</strong></span>
+                            <strong class="search-target">${t.trainName || 'Route'} (${t.trainID})</strong>
+                            <span class="search-target">${t.departureStation} ➔ ${t.arrivalStation} | ${t.price} SAR | <strong>${t.availableSeats} Seats Left</strong></span>
                         </div>
                         ${btnHtml}
                     </div>
                 `;
             });
+            list.innerHTML = htmlStr;
+        }
+
+        function filterTrains() {
+            const input = document.getElementById('trainSearch').value.toLowerCase();
+            const cards = document.getElementsByClassName('searchable-card');
+            
+            for (let i = 0; i < cards.length; i++) {
+                const text = cards[i].innerText.toLowerCase();
+                if (text.includes(input)) cards[i].style.display = "flex";
+                else cards[i].style.display = "none";
+            }
         }
 
         function selectTrainForBooking(id) {
@@ -523,11 +576,10 @@
 
         async function bookTicket(event) {
             event.preventDefault();
-            hideAllMessages();
             const payload = { trainID: document.getElementById('trainID').value, passengerID: document.getElementById('passengerID').value, name: document.getElementById('name').value, contactNumber: document.getElementById('contact').value };
             
             if(!payload.trainID || payload.trainID.includes('Select')) { 
-                showMessage('booking-message', 'Please select a route from the list first.', false);
+                showSmartModal('error', 'Missing Selection', 'Please select a route from the list first.');
                 return; 
             }
             
@@ -535,13 +587,13 @@
             const result = await res.json();
             
             if(res.ok) {
-                showMessage('booking-message', `Reservation Confirmed! PNR: <strong>${result.ticketNumber}</strong>`, true);
+                showSmartModal('success', 'Reservation Confirmed!', `Ticket issued successfully. PNR: <strong style="color:var(--text-main); font-size:16px;">${result.ticketNumber}</strong>`);
                 document.getElementById('bookingForm').reset();
                 document.getElementById('trainID').value = '';
                 document.getElementById('trainID').style.backgroundColor = 'var(--border-color)';
-                loadBookingTrains(); if(currentRole === 'admin') loadTickets(); 
+                loadBookingTrains(); loadTickets(); 
             } else { 
-                showMessage('booking-message', result.message || 'Error processing reservation.', false);
+                showSmartModal('error', 'Booking Failed', result.message || 'Error processing reservation.');
             }
         }
 
@@ -549,36 +601,38 @@
             const res = await fetch(`${API_URL}/tickets`);
             const tickets = await res.json();
             const list = document.getElementById('ticketList');
-            list.innerHTML = '';
+            let htmlStr = '';
+            
             tickets.forEach(t => {
-                list.innerHTML += `
+                htmlStr += `
                     <tr>
-                        <td class="text-bold">#${t.ticketNumber}</td>
+                        <td><span class="text-bold">#${t.ticketNumber}</span></td>
                         <td><span class="text-bold">${t.passengers?.name || 'Unknown'}</span><span class="text-small">ID: ${t.passengerID || 'N/A'}</span></td>
-                        <td class="text-bold">${t.trainID}</td>
-                        <td style="text-align:center; width: 100px;">
+                        <td style="text-align: center;"><span class="text-bold">${t.trainID}</span></td>
+                        <td style="text-align: center; width: 100px;">
                             <button class="action-btn" onclick="cancelTicket('${t.ticketNumber}')" title="Cancel Booking">🗑️</button>
                         </td>
                     </tr>
                 `;
             });
+            list.innerHTML = htmlStr;
         }
 
-        async function cancelTicket(id) {
-            if(confirm('Are you sure you want to cancel passenger seat #' + id + '?')) {
+        function cancelTicket(id) {
+            showSmartModal('confirm', 'Cancel Booking', `Are you sure you want to cancel passenger seat <strong>#${id}</strong>?`, async () => {
                 await fetch(`${API_URL}/tickets/${id}`, { method: 'DELETE' });
-                loadTickets(); loadBookingTrains(); loadSchedules(); 
-            }
+                loadTickets(); loadBookingTrains(); loadSchedules(); loadReports();
+            });
         }
 
         async function loadStaffList() {
             const list = document.getElementById('staffList');
-            list.innerHTML = `
+            let htmlStr = `
                 <tr>
                     <td><span class="text-bold">staff</span><span class="text-small">System Default Account</span></td>
                     <td style="color: var(--text-muted);">staff123</td>
-                    <td><span class="status status-on-time">Staff</span></td>
-                    <td style="text-align:center; width: 100px;"><span style="color:var(--text-muted); font-size: 11px;">Protected</span></td>
+                    <td style="text-align: center;"><span class="status status-on-time">Staff</span></td>
+                    <td style="text-align: center; width: 100px;"><span style="color:var(--text-muted); font-size: 11px;">Protected</span></td>
                 </tr>
             `;
 
@@ -586,25 +640,56 @@
                 const res = await fetch(`${API_URL}/staff`);
                 const staffUsers = await res.json();
                 staffUsers.forEach(user => {
-                    list.innerHTML += `
+                    htmlStr += `
                         <tr>
                             <td><span class="text-bold">${user.username}</span><span class="text-small">${user.email}</span></td>
                             <td style="color: var(--text-muted);">${user.password}</td>
-                            <td><span class="status status-on-time">Staff</span></td>
-                            <td style="text-align:center; width: 100px;">
+                            <td style="text-align: center;"><span class="status status-on-time">Staff</span></td>
+                            <td style="text-align: center; width: 100px;">
                                 <button class="action-btn" onclick="deleteStaff('${user.username}')" title="Delete Staff Account">🗑️</button>
                             </td>
                         </tr>
                     `;
                 });
-            } catch(e) { console.error("Error loading staff", e); }
+                list.innerHTML = htmlStr;
+            } catch(e) {}
         }
 
-        async function deleteStaff(username) {
-            if(confirm(`Are you sure you want to revoke access for '${username}'?`)) {
+        function deleteStaff(username) {
+            showSmartModal('confirm', 'Revoke Access', `Are you sure you want to revoke access for staff member <strong>'${username}'</strong>?`, async () => {
                 await fetch(`${API_URL}/staff/${username}`, { method: 'DELETE' });
                 loadStaffList();
-            }
+            });
+        }
+
+        async function loadReports() {
+            try {
+                const res = await fetch(`${API_URL}/reports`);
+                const data = await res.json();
+                
+                document.getElementById('total-revenue').innerText = `${data.totalRevenue} SAR`;
+
+                const list = document.getElementById('occupancyList');
+                let htmlStr = '';
+                
+                data.occupancyData.forEach(t => {
+                    let rateColor = '#16a34a'; 
+                    if(t.occupancyRate > 70) rateColor = '#d97706'; 
+                    if(t.occupancyRate == 100) rateColor = '#dc2626'; 
+
+                    htmlStr += `
+                        <tr>
+                            <td><span class="text-bold">${t.trainName}</span><span class="text-small">ID: ${t.trainID}</span></td>
+                            <td style="text-align: center;"><span class="text-bold">${t.totalCapacity}</span></td>
+                            <td style="text-align: center;"><span class="text-bold">${t.bookedSeats}</span></td>
+                            <td style="text-align: center;">
+                                <span class="status" style="background: ${rateColor}20; color: ${rateColor};">${t.occupancyRate}%</span>
+                            </td>
+                        </tr>
+                    `;
+                });
+                list.innerHTML = htmlStr;
+            } catch(e) {}
         }
 
         function logout() { location.reload(); }
