@@ -44,7 +44,7 @@ app.post('/api/book', async (req, res) => {
 
 app.patch('/api/tickets/:id/confirm', async (req, res) => {
     const { error } = await supabase.from('tickets').update({ status: 'Confirmed' }).eq('ticketNumber', req.params.id);
-    if(error) return res.status(500).json({ error: error.message });
+    if (error) return res.status(500).json({ error: error.message });
     res.json({ message: 'Payment confirmed and ticket activated.' });
 });
 
@@ -56,7 +56,7 @@ app.get('/api/tickets', async (req, res) => {
     const result = (tickets || []).map(t => {
         const train = (trains || []).find(tr => tr.trainID === t.trainID) || {};
         const pass = (passengers || []).find(p => p.passengerID === t.passengerID) || {};
-        return { 
+        return {
             ticketNumber: t.ticketNumber,
             trainID: t.trainID,
             passengerID: t.passengerID,
@@ -81,7 +81,7 @@ app.delete('/api/tickets/:id', async (req, res) => {
         const { error: delError } = await supabase.from('tickets').delete().eq('ticketNumber', ticketId);
         if (!delError) {
             const { data: train } = await supabase.from('trains').select('availableSeats').eq('trainID', ticket.trainID).single();
-            if(train) await supabase.from('trains').update({ availableSeats: train.availableSeats + 1 }).eq('trainID', ticket.trainID);
+            if (train) await supabase.from('trains').update({ availableSeats: train.availableSeats + 1 }).eq('trainID', ticket.trainID);
             return res.json({ message: 'Booking cancelled.' });
         }
     }
@@ -106,16 +106,32 @@ app.get('/api/staff', async (req, res) => {
     res.json(data || []);
 });
 
+// ✅ Route واحدة نظيفة لإنشاء موظف جديد (بكلمة مرور افتراضية 111111)
 app.post('/api/staff', async (req, res) => {
-    const { username, email, password } = req.body;
-    const { error } = await supabase.from('staff_users').insert([{ username, email, password }]);
-    if (error) return res.status(400).json({ message: 'Error existing.' });
-    res.json({ message: 'Staff created' });
+    const { username, email } = req.body;
+    const { error } = await supabase.from('staff_users').insert([{
+        username,
+        email,
+        password: '111111'
+    }]);
+    if (error) {
+        console.log("DB Error:", error);
+        return res.status(400).json({ message: 'Username or Email already exists.' });
+    }
+    res.json({ message: 'Staff created successfully.' });
 });
 
 app.delete('/api/staff/:username', async (req, res) => {
     await supabase.from('staff_users').delete().eq('username', req.params.username);
     res.json({ message: 'Staff deleted' });
+});
+
+// تحديث كلمة مرور الموظف
+app.patch('/api/staff/update-password', async (req, res) => {
+    const { username, newPassword } = req.body;
+    const { error } = await supabase.from('staff_users').update({ password: newPassword }).eq('username', username);
+    if (error) return res.status(500).json({ error: error.message });
+    res.json({ message: 'Password updated successfully.' });
 });
 
 app.get('/api/reports', async (req, res) => {
@@ -126,7 +142,7 @@ app.get('/api/reports', async (req, res) => {
 
     if (trains && tickets) {
         tickets.forEach(ticket => {
-            if(ticket.status === 'Confirmed') {
+            if (ticket.status === 'Confirmed') {
                 const train = trains.find(t => t.trainID === ticket.trainID);
                 if (train) totalRevenue += Number(train.price);
             }
@@ -134,32 +150,18 @@ app.get('/api/reports', async (req, res) => {
         occupancyData = trains.map(t => {
             const bookedSeats = t.totalCapacity - t.availableSeats;
             const occupancyRate = t.totalCapacity > 0 ? ((bookedSeats / t.totalCapacity) * 100).toFixed(1) : 0;
-            return { trainID: t.trainID, trainName: t.trainName || 'Unknown', totalCapacity: t.totalCapacity, bookedSeats: bookedSeats, occupancyRate: occupancyRate };
+            return { trainID: t.trainID, trainName: t.trainName || 'Unknown', totalCapacity: t.totalCapacity, bookedSeats, occupancyRate };
         });
     }
     res.json({ totalRevenue, occupancyData });
 });
-// 1. إنشاء موظف جديد بدون كلمة سر (تأخذ 111111 تلقائياً من القاعدة)
-app.post('/api/staff', async (req, res) => {
-    const { username, email } = req.body;
-    const { error } = await supabase.from('staff_users').insert([{ username, email }]);
-    if (error) return res.status(400).json({ message: 'Error: Username or Email already exists.' });
-    res.json({ message: 'Staff created successfully with temporary password.' });
-});
 
-// 2. مسار جديد لإدارة المسافرين (جلب الاسم واليوزر والإيميل والبيانات بدون الباسورد)
+// جلب بيانات المسافرين للأدمن (بدون الباسورد)
 app.get('/api/admin/passengers', async (req, res) => {
     const { data, error } = await supabase.from('passenger_users').select('passengerID, name, username, email, contactNumber');
     if (error) return res.status(500).json({ error: error.message });
     res.json(data || []);
 });
 
-// 3. مسار جديد لتحديث كلمة المرور للموظف عند أول تسجيل دخول
-app.patch('/api/staff/update-password', async (req, res) => {
-    const { username, newPassword } = req.body;
-    const { error } = await supabase.from('staff_users').update({ password: newPassword }).eq('username', username);
-    if (error) return res.status(500).json({ error: error.message });
-    res.json({ message: 'Password updated successfully.' });
-});
-const PORT = 3000;
+const PORT = 3001;
 app.listen(PORT, () => { console.log(`Server running on port ${PORT}`); });
