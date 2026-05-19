@@ -139,6 +139,27 @@ app.get('/api/reports', async (req, res) => {
     }
     res.json({ totalRevenue, occupancyData });
 });
+// 1. إنشاء موظف جديد بدون كلمة سر (تأخذ 111111 تلقائياً من القاعدة)
+app.post('/api/staff', async (req, res) => {
+    const { username, email } = req.body;
+    const { error } = await supabase.from('staff_users').insert([{ username, email }]);
+    if (error) return res.status(400).json({ message: 'Error: Username or Email already exists.' });
+    res.json({ message: 'Staff created successfully with temporary password.' });
+});
 
+// 2. مسار جديد لإدارة المسافرين (جلب الاسم واليوزر والإيميل والبيانات بدون الباسورد)
+app.get('/api/admin/passengers', async (req, res) => {
+    const { data, error } = await supabase.from('passenger_users').select('passengerID, name, username, email, contactNumber');
+    if (error) return res.status(500).json({ error: error.message });
+    res.json(data || []);
+});
+
+// 3. مسار جديد لتحديث كلمة المرور للموظف عند أول تسجيل دخول
+app.patch('/api/staff/update-password', async (req, res) => {
+    const { username, newPassword } = req.body;
+    const { error } = await supabase.from('staff_users').update({ password: newPassword }).eq('username', username);
+    if (error) return res.status(500).json({ error: error.message });
+    res.json({ message: 'Password updated successfully.' });
+});
 const PORT = 3000;
 app.listen(PORT, () => { console.log(`Server running on port ${PORT}`); });
