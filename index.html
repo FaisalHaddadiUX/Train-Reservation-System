@@ -87,7 +87,7 @@
         .modal-content { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 16px; padding: 40px 30px; width: 100%; max-width: 400px; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5); text-align: center; }
         .modal-title { font-size: 22px; font-weight: 800; margin-bottom: 15px; color: var(--text-main); }
         
-        #schedules-section, #booking-section, #staff-section, #reports-section { display: none; }
+        #schedules-section, #booking-section, #staff-section, #reports-section, #passengers-section { display: none; }
         #admin-tickets-section { display: none; margin-top: 40px; padding-top: 25px; border-top: 1px solid var(--border-color); }
         
         .form-row { display: flex; gap: 15px; }
@@ -97,6 +97,22 @@
 <body>
 
     <button class="theme-toggle" onclick="toggleTheme()" id="themeBtn"></button>
+
+    <div class="modal-overlay" id="firstLoginModal">
+        <div class="modal-content" style="text-align: left;">
+            <div class="modal-title" style="color: var(--primary-blue); text-align: left;">Setup New Password</div>
+            <p style="color: var(--text-muted); font-size: 13px; margin-bottom: 20px;">Please set a secure password for your account to proceed.</p>
+            <div class="form-group">
+                <label>New Password</label>
+                <input type="password" id="newStaffPassword" required>
+            </div>
+            <div class="form-group">
+                <label>Confirm Password</label>
+                <input type="password" id="confirmStaffPassword" required>
+            </div>
+            <button onclick="submitNewStaffPassword()" class="primary-btn" style="width: 100%; margin-top: 10px;">Save & Login</button>
+        </div>
+    </div>
 
     <div class="modal-overlay" id="smartModal">
         <div class="modal-content">
@@ -189,16 +205,6 @@
             </form>
         </div>
 
-        <div id="register-staff-area" style="display: none;">
-            <form onsubmit="handleStaffRegister(event)">
-                <div class="form-group"><label>Email Address</label><input type="email" id="reg-staff-email" placeholder="example@company.com" required></div>
-                <div class="form-group"><label>New Username</label><input type="text" id="reg-staff-username" required></div>
-                <div class="form-group"><label>Password</label><input type="password" id="reg-staff-password" required></div>
-                <button type="submit" class="primary-btn">Create Staff Account</button>
-                <div style="text-align: center; margin-top: 15px;"><span class="toggle-link" onclick="toggleAuthMode('login')">Back to Login</span></div>
-            </form>
-        </div>
-
         <div id="forgot-form-area" style="display: none;">
             <form onsubmit="handleForgotPassword(event)">
                 <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 20px; line-height: 1.5;">Enter your registered email address and we will send you a link to reset your password.</p>
@@ -221,7 +227,8 @@
         <div class="tabs" id="admin-tabs">
             <div class="tab active" onclick="switchTab('schedules')" id="tab-schedules">🚆 Train Schedules</div>
             <div class="tab" onclick="switchTab('booking')" id="tab-booking">🎫 Ticketing & Bookings</div>
-            <div class="tab" onclick="switchTab('staff')" id="tab-staff">👥 Staff Management</div>
+            <div class="tab" onclick="switchTab('passengers')" id="tab-passengers">👥 Passenger Management</div>
+            <div class="tab" onclick="switchTab('staff')" id="tab-staff">💼 Staff Management</div>
             <div class="tab" onclick="switchTab('reports')" id="tab-reports">📊 Reports & Analytics</div>
         </div>
 
@@ -300,13 +307,38 @@
             </div>
         </div>
 
+        <div id="passengers-section">
+            <div style="overflow-x: auto;">
+                <table class="management-table">
+                    <thead>
+                        <tr>
+                            <th>Full Name</th>
+                            <th>Username</th>
+                            <th>Email Address</th>
+                            <th>National ID</th>
+                            <th>Mobile Number</th>
+                        </tr>
+                    </thead>
+                    <tbody id="adminPassengerList"></tbody>
+                </table>
+            </div>
+        </div>
+
         <div id="staff-section">
+            <div style="background: var(--bg-input); padding: 20px; border-radius: 12px; margin-bottom: 25px; border: 1px solid var(--border-color);">
+                <h4 style="margin-top:0; margin-bottom:15px; color: var(--text-main);">Add New Staff Member</h4>
+                <div class="form-row" style="display:flex; gap:15px;">
+                    <div class="form-group" style="flex:1;"><label>Username</label><input type="text" id="new-staff-user"></div>
+                    <div class="form-group" style="flex:1;"><label>Email</label><input type="email" id="new-staff-email"></div>
+                </div>
+                <button onclick="createNewStaffAccount()" class="primary-btn" style="width:auto; padding:10px 25px;">Create Account</button>
+            </div>
+
             <div style="overflow-x: auto;">
                 <table class="management-table">
                     <thead>
                         <tr>
                             <th>Staff Info</th>
-                            <th>Password</th>
                             <th style="text-align: center;">Role</th>
                             <th style="text-align: center; width: 100px;">Revoke Access</th>
                         </tr>
@@ -414,7 +446,7 @@
                 currentRole = 'passenger';
                 document.getElementById('employee-roles').style.display = 'none';
                 document.getElementById('auth-links').style.display = 'flex';
-                document.getElementById('create-account-text').innerText = 'Create Passenger Account';
+                document.getElementById('create-account-text').style.display = 'inline';
             } else {
                 currentRole = 'staff'; 
                 document.getElementById('employee-roles').style.display = 'flex';
@@ -427,18 +459,17 @@
             currentRole = role;
             document.getElementById('btn-admin').className = role === 'admin' ? 'role-btn active' : 'role-btn';
             document.getElementById('btn-staff').className = role === 'staff' ? 'role-btn active' : 'role-btn';
-            document.getElementById('auth-links').style.display = role === 'staff' ? 'flex' : 'none';
-            document.getElementById('create-account-text').innerText = 'Create Staff Account';
+            document.getElementById('auth-links').style.display = 'flex';
+            document.getElementById('create-account-text').style.display = 'none';
         }
 
         function toggleAuthMode(mode) {
             document.getElementById('login-form-area').style.display = mode === 'login' ? 'block' : 'none';
             document.getElementById('register-passenger-area').style.display = (mode === 'register' && currentPortal === 'passenger') ? 'block' : 'none';
-            document.getElementById('register-staff-area').style.display = (mode === 'register' && currentPortal === 'staff_portal') ? 'block' : 'none';
             document.getElementById('forgot-form-area').style.display = mode === 'forgot' ? 'block' : 'none';
             
             if(mode === 'login') document.getElementById('login-subtitle').innerText = 'Secure System Access';
-            if(mode === 'register') document.getElementById('login-subtitle').innerText = currentPortal === 'passenger' ? 'Create Passenger Account' : 'Create Staff Account';
+            if(mode === 'register') document.getElementById('login-subtitle').innerText = 'Create Passenger Account';
             if(mode === 'forgot') document.getElementById('login-subtitle').innerText = 'Reset Password';
         }
 
@@ -461,20 +492,6 @@
                     toggleAuthMode('login');
                     showSmartModal('success', 'Account Created', 'Your passenger account is ready! Please sign in.');
                 } else { showSmartModal('error', 'Registration Failed', 'ID, Username, or Email might already exist.'); }
-            } catch(error) { showSmartModal('error', 'System Error', 'Could not connect to the server.'); }
-        }
-
-        async function handleStaffRegister(event) {
-            event.preventDefault();
-            const e = document.getElementById('reg-staff-email').value.toLowerCase().trim();
-            const u = document.getElementById('reg-staff-username').value.toLowerCase().trim();
-            const p = document.getElementById('reg-staff-password').value;
-            
-            if(u === 'staff' || u === 'admin') { showSmartModal('error', 'Failed', 'Username reserved!'); return; }
-            try {
-                const res = await fetch(`${API_URL}/staff`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ username: u, email: e, password: p }) });
-                if(res.ok) { toggleAuthMode('login'); showSmartModal('success', 'Account Created', 'Staff account created successfully!'); } 
-                else { showSmartModal('error', 'Registration Failed', 'Username or Email exists.'); }
             } catch(error) { showSmartModal('error', 'System Error', 'Could not connect to the server.'); }
         }
 
@@ -502,13 +519,21 @@
                 if (currentRole === 'admin') {
                     if (u === 'admin' && p === 'admin123') loginSuccessFlag = true;
                 } else {
-                    if (u === 'staff' && p === 'staff123') loginSuccessFlag = true;
+                    if (u === 'staff' && p === 'staff123') { loginSuccessFlag = true; launchApp(); return; }
                     else {
                         try {
                             const res = await fetch(`${API_URL}/staff`);
                             const staffUsers = await res.json();
                             const foundUser = staffUsers.find(user => user.username === u && user.password === p);
-                            if(foundUser) loginSuccessFlag = true;
+                            
+                            if(foundUser) {
+                                if(p === '111111') {
+                                    document.getElementById('firstLoginModal').style.display = 'flex';
+                                    return;
+                                } else {
+                                    loginSuccessFlag = true;
+                                }
+                            }
                         } catch(e) {}
                     }
                 }
@@ -518,6 +543,27 @@
             else showSmartModal('error', 'Access Denied', 'Invalid Credentials! Please try again.');
         }
 
+        async function submitNewStaffPassword() {
+            const u = document.getElementById('username').value.toLowerCase().trim();
+            const pass1 = document.getElementById('newStaffPassword').value;
+            const pass2 = document.getElementById('confirmStaffPassword').value;
+            
+            if(pass1.length < 4) { showSmartModal('error', 'Weak Password', 'Password must be at least 4 characters.'); return; }
+            if(pass1 !== pass2) { showSmartModal('error', 'Mismatch', 'Passwords do not match.'); return; }
+            
+            const res = await fetch(`${API_URL}/staff/update-password`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username: u, newPassword: pass1 })
+            });
+            
+            if(res.ok) {
+                document.getElementById('firstLoginModal').style.display = 'none';
+                document.getElementById('password').value = pass1;
+                launchApp();
+            } else { showSmartModal('error', 'Error', 'Failed to update password.'); }
+        }
+
         function launchApp() {
             document.getElementById('login-section').style.display = 'none';
             document.getElementById('main-app').style.display = 'block';
@@ -525,6 +571,7 @@
             if (currentRole === 'passenger') {
                 document.getElementById('tab-staff').style.display = 'none';
                 document.getElementById('tab-reports').style.display = 'none';
+                document.getElementById('tab-passengers').style.display = 'none';
                 document.getElementById('actions-header').style.display = 'none'; 
                 document.getElementById('cancel-seat-header').style.display = 'none'; 
                 
@@ -540,6 +587,7 @@
             } else if (currentRole === 'staff') {
                 document.getElementById('tab-staff').style.display = 'none';
                 document.getElementById('tab-reports').style.display = 'none';
+                document.getElementById('tab-passengers').style.display = 'none';
                 document.getElementById('actions-header').style.display = 'none'; 
                 document.getElementById('cancel-seat-header').style.display = 'table-cell'; 
                 document.getElementById('ticket-table-title').innerText = "Booked Seats Management";
@@ -547,6 +595,7 @@
             } else {
                 document.getElementById('tab-staff').style.display = 'block';
                 document.getElementById('tab-reports').style.display = 'block';
+                document.getElementById('tab-passengers').style.display = 'block';
                 document.getElementById('actions-header').style.display = 'table-cell'; 
                 document.getElementById('cancel-seat-header').style.display = 'table-cell'; 
                 document.getElementById('ticket-table-title').innerText = "Booked Seats Management";
@@ -559,21 +608,25 @@
             document.getElementById('booking-section').style.display = tab === 'booking' ? 'block' : 'none';
             document.getElementById('staff-section').style.display = tab === 'staff' ? 'block' : 'none';
             document.getElementById('reports-section').style.display = tab === 'reports' ? 'block' : 'none';
+            document.getElementById('passengers-section').style.display = tab === 'passengers' ? 'block' : 'none';
             
             document.getElementById('tab-schedules').className = tab === 'schedules' ? 'tab active' : 'tab';
             document.getElementById('tab-booking').className = tab === 'booking' ? 'tab active' : 'tab';
             document.getElementById('tab-staff').className = tab === 'staff' ? 'tab active' : 'tab';
             document.getElementById('tab-reports').className = tab === 'reports' ? 'tab active' : 'tab';
+            document.getElementById('tab-passengers').className = tab === 'passengers' ? 'tab active' : 'tab';
             
-            if(tab === 'schedules') { document.getElementById('page-title').innerText = 'Train Schedules'; document.getElementById('page-subtitle').innerText = 'View available routes and timings'; }
-            if(tab === 'booking') { document.getElementById('page-title').innerText = currentRole === 'passenger' ? 'Book a Ticket' : 'Ticketing System'; document.getElementById('page-subtitle').innerText = 'Select a route and manage bookings'; }
-            if(tab === 'staff') { document.getElementById('page-title').innerText = 'Staff Management'; document.getElementById('page-subtitle').innerText = 'Manage employee accounts and access'; }
-            if(tab === 'reports') { document.getElementById('page-title').innerText = 'System Reports'; document.getElementById('page-subtitle').innerText = 'Revenue and occupancy analytics'; }
+            if(tab === 'schedules') { document.getElementById('page-title').innerText = 'Train Schedules'; }
+            if(tab === 'booking') { document.getElementById('page-title').innerText = currentRole === 'passenger' ? 'Book a Ticket' : 'Ticketing System'; }
+            if(tab === 'staff') { document.getElementById('page-title').innerText = 'Staff Management'; }
+            if(tab === 'reports') { document.getElementById('page-title').innerText = 'System Reports'; }
+            if(tab === 'passengers') { document.getElementById('page-title').innerText = 'Passenger Management'; }
 
             if(tab === 'schedules') loadSchedules();
             if(tab === 'booking') { loadBookingTrains(); loadTickets(); }
             if(tab === 'staff') loadStaffList();
             if(tab === 'reports') loadReports();
+            if(tab === 'passengers') loadAdminPassengers();
         }
 
         async function loadSchedules() {
@@ -701,50 +754,50 @@
         }
 
         async function loadTickets() {
-    const res = await fetch(`${API_URL}/tickets`);
-    globalTicketsData = await res.json();
-    
-    let ticketsToDisplay = globalTicketsData;
-    if(currentRole === 'passenger') {
-        ticketsToDisplay = ticketsToDisplay.filter(t => t.passengerID === loggedInPassengerData.passengerID);
-    }
-
-    const list = document.getElementById('ticketList');
-    document.getElementById('admin-tickets-section').style.display = ticketsToDisplay.length > 0 ? 'block' : 'none';
-    let htmlStr = '';
-    
-    ticketsToDisplay.forEach(t => {
-        const isPending = t.status === 'Pending';
-        
-        let actions = '';
-      if(isPending) {
+            const res = await fetch(`${API_URL}/tickets`);
+            globalTicketsData = await res.json();
+            
+            let ticketsToDisplay = globalTicketsData;
             if(currentRole === 'passenger') {
-                actions += `<button class="action-btn" onclick="openUploadModal('${t.ticketNumber}')" title="Upload Receipt" style="background: #d97706; color: white; padding: 4px 10px; border-radius: 6px; margin-right:5px;">📤 Pay</button>`;
-            } else {
-                actions += `<button class="action-btn" onclick="approvePayment('${t.ticketNumber}')" title="Approve Payment" style="background: #16a34a; color: white; padding: 4px 10px; border-radius: 6px; margin-right:5px;">✅ Approve</button>`;
+                ticketsToDisplay = ticketsToDisplay.filter(t => t.passengerID === loggedInPassengerData.passengerID);
             }
+
+            const list = document.getElementById('ticketList');
+            document.getElementById('admin-tickets-section').style.display = ticketsToDisplay.length > 0 ? 'block' : 'none';
+            let htmlStr = '';
+            
+            ticketsToDisplay.forEach(t => {
+                const isPending = t.status === 'Pending';
+                
+                let actions = '';
+                if(isPending) {
+                    if(currentRole === 'passenger') {
+                        actions += `<button class="action-btn" onclick="openUploadModal('${t.ticketNumber}')" style="background: #d97706; color: white; padding: 4px 10px; border-radius: 6px; margin-right:5px; font-size: 14px;">📤 Pay</button>`;
+                    } else {
+                        actions += `<button class="action-btn" onclick="approvePayment('${t.ticketNumber}')" style="background: #16a34a; color: white; padding: 4px 10px; border-radius: 6px; margin-right:5px; font-size: 14px;">✅ Approve</button>`;
+                    }
+                }
+                actions += `<button class="action-btn" onclick="printDocument('${t.ticketNumber}', 'receipt')" style="background:var(--primary-blue); color:white; padding:4px 8px; border-radius:4px; margin-right:5px; font-size: 14px;">🧾</button>`;
+                actions += `<button class="action-btn" onclick="printDocument('${t.ticketNumber}', 'boarding')" style="background:var(--primary-blue); color:white; padding:4px 8px; border-radius:4px; font-size: 14px;">🎟️</button>`;
+
+                const cancelHtml = (currentRole !== 'passenger') ? `
+                    <td style="text-align: center; width: 100px;">
+                        <button class="action-btn" onclick="cancelTicket('${t.ticketNumber}')">🗑️</button>
+                    </td>` : '';
+
+                htmlStr += `
+                    <tr>
+                        <td><span class="text-bold">#${t.ticketNumber}</span></td>
+                        <td><span class="text-bold">${t.passengerName}</span><span class="text-small">ID: ${t.passengerID}</span></td>
+                        <td style="text-align: center;"><span class="text-bold">${t.trainID}</span></td>
+                        <td style="text-align: center;"><span class="status" style="background: ${isPending ? '#d9770620' : '#16a34a20'}; color: ${isPending ? '#d97706' : '#16a34a'}">${t.status}</span></td>
+                        <td style="text-align: center; width: 180px;">${actions}</td>
+                        ${cancelHtml}
+                    </tr>
+                `;
+            });
+            list.innerHTML = htmlStr;
         }
-        actions += `<button onclick="printDocument('${t.ticketNumber}', 'receipt')" style="background:var(--primary-blue); color:white; border:none; padding:4px 8px; border-radius:4px; margin-right:5px;">🧾</button>`;
-        actions += `<button onclick="printDocument('${t.ticketNumber}', 'boarding')" style="background:var(--primary-blue); color:white; border:none; padding:4px 8px; border-radius:4px;">🎟️</button>`;
-
-        const cancelHtml = (currentRole !== 'passenger') ? `
-            <td style="text-align: center; width: 100px;">
-                <button class="action-btn" onclick="cancelTicket('${t.ticketNumber}')" title="Cancel Booking">🗑️</button>
-            </td>` : '';
-
-        htmlStr += `
-            <tr>
-                <td><span class="text-bold">#${t.ticketNumber}</span></td>
-                <td><span class="text-bold">${t.passengerName}</span><span class="text-small">ID: ${t.passengerID}</span></td>
-                <td style="text-align: center;"><span class="text-bold">${t.trainID}</span></td>
-                <td style="text-align: center;"><span class="status" style="background: ${isPending ? '#d9770620' : '#16a34a20'}; color: ${isPending ? '#d97706' : '#16a34a'}">${t.status}</span></td>
-                <td style="text-align: center;">${actions}</td>
-                ${cancelHtml}
-            </tr>
-        `;
-    });
-    list.innerHTML = htmlStr;
-}
 
         function cancelTicket(id) {
             showSmartModal('confirm', 'Cancel Booking', `Are you sure you want to cancel passenger seat <strong>#${id}</strong>?`, async () => {
@@ -753,7 +806,6 @@
             });
         }
 
-        // --- نظام تأكيد الدفع برفع إيصال ---
         function openUploadModal(ticketId) {
             document.getElementById('confirmTicketId').value = ticketId;
             document.getElementById('uploadModal').style.display = 'flex';
@@ -764,15 +816,23 @@
             document.getElementById('receiptFile').value = '';
         }
 
-      function submitPaymentConfirmation() {
+        function submitPaymentConfirmation() {
             const file = document.getElementById('receiptFile').value;
-            if(!file) { alert("Please select a file first."); return; }
-            
+            if(!file) { return; }
             closeUploadModal();
             showSmartModal('success', 'Receipt Uploaded', 'Your receipt has been submitted successfully and will be reviewed by our staff shortly.');
         }
 
-        // --- الطباعة بدون مشاكل الـ Undefined ---
+        function approvePayment(id) {
+            showSmartModal('confirm', 'Approve Payment', `Are you sure you want to confirm payment for ticket <strong>#${id}</strong>?`, async () => {
+                try {
+                    await fetch(`${API_URL}/tickets/${id}/confirm`, { method: 'PATCH' });
+                    loadTickets(); loadReports();
+                    showSmartModal('success', 'Payment Confirmed', 'The ticket is now Confirmed!');
+                } catch(e) {}
+            });
+        }
+
         function printDocument(ticketNum, type) {
             const ticket = globalTicketsData.find(t => t.ticketNumber == ticketNum);
             if(!ticket) return;
@@ -811,7 +871,7 @@
                             <div class="row"><span class="label">Date:</span><span class="value">${new Date().toLocaleString()}</span></div>
                             <div class="row"><span class="label">Passenger Name:</span><span class="value">${ticket.passengerName}</span></div>
                             <div class="row"><span class="label">Route ID:</span><span class="value">${ticket.trainID} (${ticket.trainName})</span></div>
-                            <div class="row"><span class="label">Payment Method:</span><span class="value">${ticket.paymentMethod || 'Credit Card'}</span></div>
+                            <div class="row"><span class="label">Payment Method:</span><span class="value">${ticket.paymentMethod}</span></div>
                             <div class="row"><span class="label">Status:</span><span class="value" style="color: ${isPending ? '#d97706' : '#16a34a'}">${statusDisplay}</span></div>
                             <div class="row" style="border:none; margin-top: 20px;"><span class="label" style="font-size: 20px;">Total Amount:</span><span class="value total">${ticket.price} SAR</span></div>
                             ${warningText}
@@ -898,12 +958,34 @@
             setTimeout(() => { printWindow.print(); printWindow.close(); }, 500);
         }
 
+       async function createNewStaffAccount() {
+            const user = document.getElementById('new-staff-user').value.toLowerCase().trim();
+            const email = document.getElementById('new-staff-email').value.toLowerCase().trim();
+            if(!user || !email) { showSmartModal('error', 'Fields Required', 'Please fill all fields.'); return; }
+            
+            const res = await fetch(`${API_URL}/staff`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username: user, email: email })
+            });
+            
+            if(res.ok) {
+                showSmartModal('success', 'Staff Created', `Account created! Temporary password is <strong>111111</strong>`);
+                document.getElementById('new-staff-user').value = '';
+                document.getElementById('new-staff-email').value = '';
+                loadStaffList();
+            } else { 
+                // قراءة رسالة الخطأ الأصلية من السيرفر
+                const errData = await res.json();
+                showSmartModal('error', 'Failed', errData.message || 'An  occurred.'); 
+            }
+        }
+
         async function loadStaffList() {
             const list = document.getElementById('staffList');
             let htmlStr = `
                 <tr>
                     <td><span class="text-bold">staff</span><span class="text-small">System Default Account</span></td>
-                    <td style="color: var(--text-muted);">staff123</td>
                     <td style="text-align: center;"><span class="status status-on-time">Staff</span></td>
                     <td style="text-align: center; width: 100px;"><span style="color:var(--text-muted); font-size: 11px;">Protected</span></td>
                 </tr>
@@ -915,10 +997,9 @@
                     htmlStr += `
                         <tr>
                             <td><span class="text-bold">${user.username}</span><span class="text-small">${user.email}</span></td>
-                            <td style="color: var(--text-muted);">${user.password}</td>
                             <td style="text-align: center;"><span class="status status-on-time">Staff</span></td>
                             <td style="text-align: center; width: 100px;">
-                                <button class="action-btn" onclick="deleteStaff('${user.username}')" title="Delete Staff Account">🗑️</button>
+                                <button class="action-btn" onclick="deleteStaff('${user.username}')">🗑️</button>
                             </td>
                         </tr>
                     `;
@@ -932,6 +1013,26 @@
                 await fetch(`${API_URL}/staff/${username}`, { method: 'DELETE' });
                 loadStaffList();
             });
+        }
+
+        async function loadAdminPassengers() {
+            const res = await fetch(`${API_URL}/admin/passengers`);
+            const passengers = await res.json();
+            const list = document.getElementById('adminPassengerList');
+            let htmlStr = '';
+            
+            passengers.forEach(p => {
+                htmlStr += `
+                    <tr>
+                        <td><span class="text-bold">${p.name}</span></td>
+                        <td><span class="text-bold">${p.username}</span></td>
+                        <td>${p.email}</td>
+                        <td><span class="text-bold">${p.passengerID}</span></td>
+                        <td>${p.contactNumber}</td>
+                    </tr>
+                `;
+            });
+            list.innerHTML = htmlStr;
         }
 
         async function loadReports() {
@@ -960,18 +1061,7 @@
                 list.innerHTML = htmlStr;
             } catch(e) {}
         }
-function approvePayment(id) {
-            showSmartModal('confirm', 'Approve Payment', `Are you sure you want to confirm payment for ticket <strong>#${id}</strong>?`, async () => {
-                try {
-                    await fetch(`${API_URL}/tickets/${id}/confirm`, { method: 'PATCH' });
-                    loadTickets(); 
-                    loadReports();
-                    showSmartModal('success', 'Payment Confirmed', 'The ticket is now Confirmed!');
-                } catch(e) {
-                    showSmartModal('error', 'Error', 'Failed to approve payment.');
-                }
-            });
-        }
+
         function logout() { location.reload(); }
     </script>
 </body>
