@@ -162,6 +162,12 @@ app.get('/api/admin/passengers', async (req, res) => {
     if (error) return res.status(500).json({ error: error.message });
     res.json(data || []);
 });
+app.delete('/api/admin/passengers/:id', async (req, res) => {
+    const { id } = req.params;
+    const { error } = await supabase.from('passenger_users').delete().eq('passengerID', id);
+    if (error) return res.status(500).json({ error: error.message });
+    res.json({ message: 'Passenger account deleted successfully.' });
+});
 
 const PORT = 3001;
 app.listen(PORT, () => { console.log(`Server running on port ${PORT}`); });
