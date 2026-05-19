@@ -317,6 +317,7 @@
                             <th>Email Address</th>
                             <th>National ID</th>
                             <th>Mobile Number</th>
+                            <th>Action</th>
                         </tr>
                     </thead>
                     <tbody id="adminPassengerList"></tbody>
@@ -1014,27 +1015,38 @@
                 loadStaffList();
             });
         }
-
-        async function loadAdminPassengers() {
-            const res = await fetch(`${API_URL}/admin/passengers`);
-            const passengers = await res.json();
-            const list = document.getElementById('adminPassengerList');
-            let htmlStr = '';
-            
-            passengers.forEach(p => {
-                htmlStr += `
-                    <tr>
-                        <td><span class="text-bold">${p.name}</span></td>
-                        <td><span class="text-bold">${p.username}</span></td>
-                        <td>${p.email}</td>
-                        <td><span class="text-bold">${p.passengerID}</span></td>
-                        <td>${p.contactNumber}</td>
-                    </tr>
-                `;
-            });
-            list.innerHTML = htmlStr;
+async function loadAdminPassengers() {
+    const res = await fetch(`${API_URL}/admin/passengers`);
+    const passengers = await res.json();
+    const list = document.getElementById('adminPassengerList');
+    list.innerHTML = '';
+    
+    passengers.forEach(p => {
+        list.innerHTML += `
+            <tr>
+                <td><span class="text-bold">${p.name}</span></td>
+                <td><span class="text-bold">${p.username}</span></td>
+                <td>${p.email}</td>
+                <td><span class="text-bold">${p.passengerID}</span></td>
+                <td>${p.contactNumber}</td>
+                <td style="text-align: center;">
+                    <button class="action-btn" onclick="deletePassenger('${p.passengerID}')" title="Delete Passenger">🗑️</button>
+                </td>
+            </tr>
+        `;
+    });
+}
+async function deletePassenger(id) {
+    showSmartModal('confirm', 'Delete Passenger', `Are you sure you want to delete passenger <strong>#${id}</strong>? This action cannot be undone.`, async () => {
+        try {
+            await fetch(`${API_URL}/admin/passengers/${id}`, { method: 'DELETE' });
+            showSmartModal('success', 'Deleted', 'Passenger account removed.');
+            loadAdminPassengers();
+        } catch(e) {
+            showSmartModal('error', 'Error', 'Failed to delete.');
         }
-
+    });
+}
         async function loadReports() {
             try {
                 const res = await fetch(`${API_URL}/reports`);
@@ -1063,6 +1075,7 @@
         }
 
         function logout() { location.reload(); }
+        
     </script>
 </body>
 </html>
