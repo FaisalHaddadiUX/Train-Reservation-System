@@ -56,12 +56,13 @@ app.get('/api/tickets', async (req, res) => {
     const result = (tickets || []).map(t => {
         const train = (trains || []).find(tr => tr.trainID === t.trainID) || {};
         const pass = (passengers || []).find(p => p.passengerID === t.passengerID) || {};
-        return {
+       return {
             ticketNumber: t.ticketNumber,
             trainID: t.trainID,
             passengerID: t.passengerID,
             status: t.status,
             paymentMethod: t.paymentMethod || 'Credit Card',
+            receiptPath: t.receiptPath, // <--- هذا السطر اللي كان ناقص!
             bookingDate: t.bookingDate,
             trainName: train.trainName || 'Unknown',
             departureStation: train.departureStation || 'N/A',
@@ -121,6 +122,32 @@ app.post('/api/staff', async (req, res) => {
     res.json({ message: 'Staff created successfully.' });
 });
 
+app.post('/api/trains', async (req, res) => {
+    const { departureStation, arrivalStation, price } = req.body;
+    
+    // 1. توليد ID فريد
+    const newId = 'TR-' + Math.floor(Math.random() * 900 + 100);
+    
+    // 2. تحديد تاريخ غد تلقائياً
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    const dateStr = tomorrow.toISOString().split('T')[0];
+
+    const { error } = await supabase.from('trains').insert([{
+        trainID: newId,
+        trainName: `${departureStation} to ${arrivalStation} Express`,
+        departureStation: departureStation,
+        arrivalStation: arrivalStation,
+        departureDate: dateStr,
+        price: parseFloat(price),
+        totalCapacity: 50,
+        availableSeats: 50,
+        status: 'On Time'
+    }]);
+
+    if (error) return res.status(500).json({ error: error.message });
+    res.json({ message: 'Success' });
+});
 app.delete('/api/staff/:username', async (req, res) => {
     await supabase.from('staff_users').delete().eq('username', req.params.username);
     res.json({ message: 'Staff deleted' });
@@ -168,6 +195,17 @@ app.delete('/api/admin/passengers/:id', async (req, res) => {
     if (error) return res.status(500).json({ error: error.message });
     res.json({ message: 'Passenger account deleted successfully.' });
 });
+// مسار رفع الإيصال (تخزين الرابط)
+app.patch('/api/tickets/:id/upload', async (req, res) => {
+    const { receiptPath } = req.body;
+    await supabase.from('tickets').update({ receiptPath: receiptPath }).eq('ticketNumber', req.params.id);
+    res.json({ message: 'Uploaded' });
+});
 
-const PORT = 3001;
+// مسار الرفض (إلغاء التذكرة أو تغيير الحالة)
+app.patch('/api/tickets/:id/reject', async (req, res) => {
+    await supabase.from('tickets').update({ status: 'Cancelled' }).eq('ticketNumber', req.params.id);
+    res.json({ message: 'Rejected' });
+});
+const PORT = 3000;
 app.listen(PORT, () => { console.log(`Server running on port ${PORT}`); });
