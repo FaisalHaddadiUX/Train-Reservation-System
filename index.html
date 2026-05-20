@@ -825,7 +825,14 @@
                         <td><span class="text-bold">#${t.ticketNumber}</span></td>
                         <td><span class="text-bold">${t.passengerName}</span><span class="text-small">ID: ${t.passengerID}</span></td>
                         <td style="text-align: center;"><span class="text-bold">${t.trainID}</span></td>
-                        <td style="text-align: center;"><span class="status" style="background: ${isPending ? '#d9770620' : '#16a34a20'}; color: ${isPending ? '#d97706' : '#16a34a'}">${t.status}</span></td>
+                        <td style="text-align: center;">
+    <span class="status" style="
+        background: ${t.status === 'Pending' ? '#d9770620' : (t.status === 'Cancelled' ? '#ef444420' : '#16a34a20')}; 
+        color: ${t.status === 'Pending' ? '#d97706' : (t.status === 'Cancelled' ? '#dc2626' : '#16a34a')};
+    ">
+        ${t.status}
+    </span>
+</td>
                         <td style="text-align: center; width: 180px;">${actions}</td>
                         ${cancelHtml}
                     </tr>
