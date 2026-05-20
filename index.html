@@ -234,6 +234,15 @@
 
         <div id="schedules-section">
             <div style="overflow-x: auto;">
+               <div id="add-route-box" style="background: var(--bg-input); padding: 20px; border-radius: 12px; margin-bottom: 25px; border: 1px solid var(--border-color); display: none;">
+                    <h4 style="margin-top:0; margin-bottom:15px; color: var(--text-main);">Add New Train Route</h4>
+                    <div class="form-row" style="display:flex; gap:15px;">
+                        <div class="form-group" style="flex:1;"><label>Departure Station</label><input type="text" id="new-dep" placeholder="e.g. Riyadh"></div>
+                        <div class="form-group" style="flex:1;"><label>Arrival Station</label><input type="text" id="new-arr" placeholder="e.g. Dammam"></div>
+                        <div class="form-group" style="flex:1;"><label>Price (SAR)</label><input type="number" id="new-price" placeholder="150"></div>
+                    </div>
+                    <button onclick="createNewRoute()" class="primary-btn" style="width:auto; padding:10px 25px;">Add Route</button>
+                </div>
                 <table class="management-table">
                     <thead>
                         <tr>
@@ -575,6 +584,7 @@
                 document.getElementById('tab-passengers').style.display = 'none';
                 document.getElementById('actions-header').style.display = 'none'; 
                 document.getElementById('cancel-seat-header').style.display = 'none'; 
+                document.getElementById('add-route-box').style.display = 'none';
                 
                 document.getElementById('name').value = loggedInPassengerData.name;
                 document.getElementById('passengerID').value = loggedInPassengerData.passengerID;
@@ -592,6 +602,7 @@
                 document.getElementById('actions-header').style.display = 'none'; 
                 document.getElementById('cancel-seat-header').style.display = 'table-cell'; 
                 document.getElementById('ticket-table-title').innerText = "Booked Seats Management";
+                document.getElementById('add-route-box').style.display = 'none';
                 switchTab('booking');
             } else {
                 document.getElementById('tab-staff').style.display = 'block';
@@ -600,8 +611,10 @@
                 document.getElementById('actions-header').style.display = 'table-cell'; 
                 document.getElementById('cancel-seat-header').style.display = 'table-cell'; 
                 document.getElementById('ticket-table-title').innerText = "Booked Seats Management";
+                document.getElementById('add-route-box').style.display = 'block';
                 switchTab('schedules');
             }
+            checkPendingReceipts();
         }
 
         function switchTab(tab) {
@@ -722,6 +735,25 @@
             input.style.backgroundColor = 'var(--bg-input)';
         }
 
+        async function createNewRoute() {
+            const dep = document.getElementById('new-dep').value;
+            const arr = document.getElementById('new-arr').value;
+            const price = document.getElementById('new-price').value;
+            if(!dep || !arr || !price) { showSmartModal('error', 'Fields Required', 'Please fill all route fields.'); return; }
+            
+            await fetch(`${API_URL}/trains`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ departureStation: dep, arrivalStation: arr, price: price })
+            });
+            
+            document.getElementById('new-dep').value = '';
+            document.getElementById('new-arr').value = '';
+            document.getElementById('new-price').value = '';
+            showSmartModal('success', 'Route Added', 'New train route created successfully!');
+            loadSchedules();
+        }
+
         async function bookTicket(event) {
             event.preventDefault();
             const payload = { 
@@ -773,9 +805,11 @@
                 let actions = '';
                 if(isPending) {
                     if(currentRole === 'passenger') {
-                        actions += `<button class="action-btn" onclick="openUploadModal('${t.ticketNumber}')" style="background: #d97706; color: white; padding: 4px 10px; border-radius: 6px; margin-right:5px; font-size: 14px;">📤 Pay</button>`;
+                        actions += `<button class="action-btn" onclick="openUploadModal('${t.ticketNumber}')" style="background:#d97706; color:white; padding:4px 8px; border-radius:4px;">📤 Pay</button>`;
                     } else {
-                        actions += `<button class="action-btn" onclick="approvePayment('${t.ticketNumber}')" style="background: #16a34a; color: white; padding: 4px 10px; border-radius: 6px; margin-right:5px; font-size: 14px;">✅ Approve</button>`;
+                        actions += `<button class="action-btn" onclick="viewReceipt('${t.ticketNumber}')" style="background:#6b7280; color:white; padding:4px 8px; border-radius:4px;">👁️</button>`;
+                        actions += `<button class="action-btn" onclick="approvePayment('${t.ticketNumber}')" style="background:#16a34a; color:white; padding:4px 8px; border-radius:4px; margin:0 5px;">✅</button>`;
+                        actions += `<button class="action-btn" onclick="rejectPayment('${t.ticketNumber}')" style="background:#dc2626; color:white; padding:4px 8px; border-radius:4px;">❌</button>`;
                     }
                 }
                 actions += `<button class="action-btn" onclick="printDocument('${t.ticketNumber}', 'receipt')" style="background:var(--primary-blue); color:white; padding:4px 8px; border-radius:4px; margin-right:5px; font-size: 14px;">🧾</button>`;
@@ -818,10 +852,44 @@
         }
 
         function submitPaymentConfirmation() {
-            const file = document.getElementById('receiptFile').value;
-            if(!file) { return; }
-            closeUploadModal();
-            showSmartModal('success', 'Receipt Uploaded', 'Your receipt has been submitted successfully and will be reviewed by our staff shortly.');
+            const fileInput = document.getElementById('receiptFile');
+            if(!fileInput.files[0]) { alert("Please select a file first."); return; }
+            
+            const file = fileInput.files[0];
+            const reader = new FileReader();
+            
+            reader.onloadend = async function() {
+                const base64String = reader.result; 
+                const ticketId = document.getElementById('confirmTicketId').value;
+                
+                try {
+                    await fetch(`${API_URL}/tickets/${ticketId}/upload`, { 
+                        method: 'PATCH', 
+                        headers: {'Content-Type': 'application/json'},
+                        body: JSON.stringify({ receiptPath: base64String }) 
+                    });
+                    closeUploadModal();
+                    showSmartModal('success', 'Receipt Uploaded', 'Your receipt has been submitted successfully and will be reviewed by our staff shortly.');
+                    loadTickets(); 
+                } catch(e) { showSmartModal('error', 'Error', 'Upload failed.'); }
+            };
+            reader.readAsDataURL(file);
+        }
+
+        async function checkPendingReceipts() {
+            if(currentRole !== 'passenger') {
+                try {
+                    const res = await fetch(`${API_URL}/tickets`);
+                    const tks = await res.json();
+                    const pendingCount = tks.filter(t => t.status === 'Pending' && t.receiptPath && t.receiptPath.length > 50).length;
+                    
+                    if(pendingCount > 0) {
+                        setTimeout(() => {
+                            showSmartModal('success', 'Pending Approvals 🔔', `You have ${pendingCount} receipt(s) waiting for your approval!`);
+                        }, 800);
+                    }
+                } catch(e) {}
+            }
         }
 
         function approvePayment(id) {
@@ -832,6 +900,58 @@
                     showSmartModal('success', 'Payment Confirmed', 'The ticket is now Confirmed!');
                 } catch(e) {}
             });
+        }
+
+        function rejectPayment(id) {
+            showSmartModal('confirm', 'Reject Payment', `Are you sure you want to reject payment for ticket <strong>#${id}</strong>?`, async () => {
+                await fetch(`${API_URL}/tickets/${id}/reject`, { method: 'PATCH' });
+                loadTickets();
+                showSmartModal('error', 'Rejected', 'The payment was rejected.');
+            });
+        }
+
+        async function loadReports() {
+            try {
+                const res = await fetch(`${API_URL}/reports`);
+                const data = await res.json();
+                document.getElementById('total-revenue').innerText = `${data.totalRevenue} SAR`;
+
+                const list = document.getElementById('occupancyList');
+                let htmlStr = '';
+                
+                data.occupancyData.forEach(t => {
+                    let rateColor = '#16a34a'; 
+                    if(t.occupancyRate > 70) rateColor = '#d97706'; 
+                    if(t.occupancyRate == 100) rateColor = '#dc2626'; 
+
+                    htmlStr += `
+                        <tr>
+                            <td><span class="text-bold">${t.trainName}</span><span class="text-small">ID: ${t.trainID}</span></td>
+                            <td style="text-align: center;"><span class="text-bold">${t.totalCapacity}</span></td>
+                            <td style="text-align: center;"><span class="text-bold">${t.bookedSeats}</span></td>
+                            <td style="text-align: center;"><span class="status" style="background: ${rateColor}20; color: ${rateColor};">${t.occupancyRate}%</span></td>
+                        </tr>
+                    `;
+                });
+                list.innerHTML = htmlStr;
+            } catch(e) {}
+        }
+
+        function logout() { location.reload(); }
+
+        function viewReceipt(ticketNum) {
+            const ticket = globalTicketsData.find(t => t.ticketNumber == ticketNum);
+            if (!ticket || !ticket.receiptPath || ticket.receiptPath.length < 50) {
+                showSmartModal('error', 'No Receipt', 'No valid receipt uploaded for this ticket.');
+                return;
+            }
+            document.getElementById('modalReceiptImg').src = ticket.receiptPath;
+            document.getElementById('imageModal').style.display = 'flex';
+        }
+
+        function closeImageModal() {
+            document.getElementById('imageModal').style.display = 'none';
+            document.getElementById('modalReceiptImg').src = '';
         }
 
         function printDocument(ticketNum, type) {
@@ -959,7 +1079,7 @@
             setTimeout(() => { printWindow.print(); printWindow.close(); }, 500);
         }
 
-       async function createNewStaffAccount() {
+        async function createNewStaffAccount() {
             const user = document.getElementById('new-staff-user').value.toLowerCase().trim();
             const email = document.getElementById('new-staff-email').value.toLowerCase().trim();
             if(!user || !email) { showSmartModal('error', 'Fields Required', 'Please fill all fields.'); return; }
@@ -976,9 +1096,8 @@
                 document.getElementById('new-staff-email').value = '';
                 loadStaffList();
             } else { 
-                // قراءة رسالة الخطأ الأصلية من السيرفر
                 const errData = await res.json();
-                showSmartModal('error', 'Failed', errData.message || 'An  occurred.'); 
+                showSmartModal('error', 'Failed', errData.message || 'An error occurred.'); 
             }
         }
 
@@ -1015,67 +1134,49 @@
                 loadStaffList();
             });
         }
-async function loadAdminPassengers() {
-    const res = await fetch(`${API_URL}/admin/passengers`);
-    const passengers = await res.json();
-    const list = document.getElementById('adminPassengerList');
-    list.innerHTML = '';
-    
-    passengers.forEach(p => {
-        list.innerHTML += `
-            <tr>
-                <td><span class="text-bold">${p.name}</span></td>
-                <td><span class="text-bold">${p.username}</span></td>
-                <td>${p.email}</td>
-                <td><span class="text-bold">${p.passengerID}</span></td>
-                <td>${p.contactNumber}</td>
-                <td style="text-align: center;">
-                    <button class="action-btn" onclick="deletePassenger('${p.passengerID}')" title="Delete Passenger">🗑️</button>
-                </td>
-            </tr>
-        `;
-    });
-}
-async function deletePassenger(id) {
-    showSmartModal('confirm', 'Delete Passenger', `Are you sure you want to delete passenger <strong>#${id}</strong>? This action cannot be undone.`, async () => {
-        try {
-            await fetch(`${API_URL}/admin/passengers/${id}`, { method: 'DELETE' });
-            showSmartModal('success', 'Deleted', 'Passenger account removed.');
-            loadAdminPassengers();
-        } catch(e) {
-            showSmartModal('error', 'Error', 'Failed to delete.');
-        }
-    });
-}
-        async function loadReports() {
-            try {
-                const res = await fetch(`${API_URL}/reports`);
-                const data = await res.json();
-                document.getElementById('total-revenue').innerText = `${data.totalRevenue} SAR`;
 
-                const list = document.getElementById('occupancyList');
-                let htmlStr = '';
-                
-                data.occupancyData.forEach(t => {
-                    let rateColor = '#16a34a'; 
-                    if(t.occupancyRate > 70) rateColor = '#d97706'; 
-                    if(t.occupancyRate == 100) rateColor = '#dc2626'; 
-
-                    htmlStr += `
-                        <tr>
-                            <td><span class="text-bold">${t.trainName}</span><span class="text-small">ID: ${t.trainID}</span></td>
-                            <td style="text-align: center;"><span class="text-bold">${t.totalCapacity}</span></td>
-                            <td style="text-align: center;"><span class="text-bold">${t.bookedSeats}</span></td>
-                            <td style="text-align: center;"><span class="status" style="background: ${rateColor}20; color: ${rateColor};">${t.occupancyRate}%</span></td>
-                        </tr>
-                    `;
-                });
-                list.innerHTML = htmlStr;
-            } catch(e) {}
+        async function loadAdminPassengers() {
+            const res = await fetch(`${API_URL}/admin/passengers`);
+            const passengers = await res.json();
+            const list = document.getElementById('adminPassengerList');
+            list.innerHTML = '';
+            
+            passengers.forEach(p => {
+                list.innerHTML += `
+                    <tr>
+                        <td><span class="text-bold">${p.name}</span></td>
+                        <td><span class="text-bold">${p.username}</span></td>
+                        <td>${p.email}</td>
+                        <td><span class="text-bold">${p.passengerID}</span></td>
+                        <td>${p.contactNumber}</td>
+                        <td style="text-align: center;">
+                            <button class="action-btn" onclick="deletePassenger('${p.passengerID}')" title="Delete Passenger">🗑️</button>
+                        </td>
+                    </tr>
+                `;
+            });
         }
 
-        function logout() { location.reload(); }
-        
+        async function deletePassenger(id) {
+            showSmartModal('confirm', 'Delete Passenger', `Are you sure you want to delete passenger <strong>#${id}</strong>? This action cannot be undone.`, async () => {
+                try {
+                    await fetch(`${API_URL}/admin/passengers/${id}`, { method: 'DELETE' });
+                    showSmartModal('success', 'Deleted', 'Passenger account removed.');
+                    loadAdminPassengers();
+                } catch(e) {
+                    showSmartModal('error', 'Error', 'Failed to delete.');
+                }
+            });
+        } 
     </script>
+
+    <div class="modal-overlay" id="imageModal" onclick="closeImageModal()">
+        <div class="modal-content" style="width: 80%; max-width: 600px; padding: 10px;" onclick="event.stopPropagation()">
+            <img id="modalReceiptImg" src="" style="width: 100%; border-radius: 8px;">
+            <p style="color:var(--text-muted); margin-top:10px; text-align:center;">Receipt View</p>
+            <button onclick="closeImageModal()" class="primary-btn" style="margin-top:10px;">Close</button>
+        </div>
+    </div>
+
 </body>
 </html>
