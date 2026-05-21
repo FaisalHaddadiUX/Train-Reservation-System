@@ -139,10 +139,23 @@
     </div>
 
     <div class="modal-overlay" id="editModal">
-        <div class="modal-content" style="text-align: left; padding: 30px;">
+        <div class="modal-content" style="text-align: left; padding: 30px; max-width: 480px;">
             <div class="modal-title" style="text-align: left; font-size: 20px;">Edit Route: <span id="editTrainIdDisplay" style="color:var(--primary-blue);"></span></div>
             <input type="hidden" id="editTrainId">
-            <div class="form-group"><label>Ticket Price (SAR)</label><input type="number" id="editPrice" step="0.01"></div>
+            <input type="hidden" id="editCurrentBooked">
+
+            <div class="form-row">
+                <div class="form-group"><label>Departure Date</label><input type="date" id="editDate"></div>
+                <div class="form-group"><label>Departure Time</label><input type="time" id="editTime"></div>
+            </div>
+            <div class="form-row">
+                <div class="form-group"><label>Ticket Price (SAR)</label><input type="number" id="editPrice" step="0.01"></div>
+                <div class="form-group">
+                    <label>Total Capacity</label>
+                    <input type="number" id="editCapacity" min="1" step="1">
+                    <span id="editCapacityHint" style="font-size:11px; color:var(--text-muted); margin-top:4px; display:block;"></span>
+                </div>
+            </div>
             <div class="form-group">
                 <label>Route Status</label>
                 <select id="editStatus">
@@ -152,7 +165,7 @@
                 </select>
             </div>
             <div class="form-row" style="margin-top: 30px;">
-                <button onclick="saveTrainEdit()" class="primary-btn" style="flex:2;">Save</button>
+                <button onclick="saveTrainEdit()" class="primary-btn" style="flex:2;">Save Changes</button>
                 <button onclick="closeEditModal()" class="primary-btn" style="flex:1; background-color:var(--border-color); color:var(--text-main);">Cancel</button>
             </div>
         </div>
@@ -291,9 +304,17 @@
                             <option value="Cash at Station">💵 Cash at Station</option>
                         </select>
                     </div>
+                    <div class="form-group" style="max-width: 160px;">
+                        <label>Number of Tickets</label>
+                        <input type="number" id="numberOfTickets" value="1" min="1" required oninput="updateTicketPriceSummary()">
+                    </div>
                 </div>
 
-                <button type="submit" class="primary-btn" style="width:auto; padding: 14px 40px; margin-top: 10px;">Confirm & Issue Ticket</button>
+                <div id="price-summary" style="display:none; background: rgba(59,130,246,0.08); border: 1px solid rgba(59,130,246,0.25); border-radius: 8px; padding: 12px 16px; margin-bottom: 16px; font-size: 14px; color: var(--text-muted);">
+                    🎫 <span id="price-summary-text"></span>
+                </div>
+
+                <button type="submit" class="primary-btn" style="width:auto; padding: 14px 40px; margin-top: 10px;">Confirm & Issue Ticket(s)</button>
             </form>
 
             <div id="admin-tickets-section">
@@ -658,14 +679,14 @@
 
                 const actionsHtml = (currentRole === 'admin') ? `
                     <td style="text-align: center; width: 100px;">
-                        <button class="action-btn" onclick="openEditModal('${t.trainID}', '${t.price}', '${dbStatus}')" title="Edit">✏️</button>
+                        <button class="action-btn" onclick="openEditModal('${t.trainID}', '${t.price}', '${dbStatus}', '${t.departureDate}', '${t.departureTime || '10:00'}', '${t.totalCapacity}', '${t.totalCapacity - t.availableSeats}')" title="Edit">✏️</button>
                     </td>` : '';
 
                 htmlStr += `
                     <tr>
                         <td><span class="text-bold">${t.trainID}</span></td>
                         <td><span class="text-bold">${t.departureStation}</span><span class="text-small">to ${t.arrivalStation}</span></td>
-                        <td><span class="text-bold">${t.departureDate}</span><span class="text-small">10:00 AM</span></td>
+                        <td><span class="text-bold">${t.departureDate}</span><span class="text-small">${t.departureTime || '10:00 AM'}</span></td>
                         <td style="text-align: center;"><span class="text-bold" style="color:${t.availableSeats>0?'#16a34a':'#dc2626'}">${t.availableSeats}</span></td>
                         <td style="text-align: center;"><span class="text-bold">${t.price} SAR</span></td>
                         <td style="text-align: center;"><span class="status ${statusClass}">${finalStatus}</span></td>
@@ -676,11 +697,19 @@
             list.innerHTML = htmlStr;
         }
 
-        function openEditModal(id, price, status) {
+        function openEditModal(id, price, status, date, time, capacity, booked) {
             document.getElementById('editTrainIdDisplay').innerText = id;
             document.getElementById('editTrainId').value = id;
             document.getElementById('editPrice').value = price;
             document.getElementById('editStatus').value = status;
+            document.getElementById('editDate').value = date || '';
+            document.getElementById('editDate').min = new Date().toISOString().split('T')[0];
+            document.getElementById('editTime').value = time || '10:00';
+            document.getElementById('editCapacity').value = capacity || 50;
+            document.getElementById('editCurrentBooked').value = booked || 0;
+            const bookedCount = parseInt(booked) || 0;
+            document.getElementById('editCapacityHint').innerText = `Currently booked: ${bookedCount} seat(s). Minimum allowed: ${bookedCount}.`;
+            document.getElementById('editCapacity').min = bookedCount;
             document.getElementById('editModal').style.display = 'flex';
         }
         function closeEditModal() { document.getElementById('editModal').style.display = 'none'; }
@@ -688,8 +717,37 @@
             const id = document.getElementById('editTrainId').value;
             const newPrice = document.getElementById('editPrice').value;
             const newStatus = document.getElementById('editStatus').value;
-            await fetch(`${API_URL}/trains/${id}`, { method: 'PATCH', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ price: newPrice, status: newStatus }) });
-            closeEditModal(); loadSchedules();
+            const newDate = document.getElementById('editDate').value;
+            const newTime = document.getElementById('editTime').value;
+            const newCapacity = parseInt(document.getElementById('editCapacity').value);
+            const booked = parseInt(document.getElementById('editCurrentBooked').value) || 0;
+
+            if(newCapacity < booked) {
+                showSmartModal('error', 'Invalid Capacity', `Cannot set capacity below the number of booked seats (${booked}).`);
+                return;
+            }
+
+            const today = new Date().toISOString().split('T')[0];
+            if(newDate && newDate < today) {
+                showSmartModal('error', 'Invalid Date', 'Departure date cannot be in the past.');
+                return;
+            }
+
+            await fetch(`${API_URL}/trains/${id}`, {
+                method: 'PATCH',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({
+                    price: newPrice,
+                    status: newStatus,
+                    departureDate: newDate,
+                    departureTime: newTime,
+                    totalCapacity: newCapacity,
+                    availableSeats: newCapacity - booked
+                })
+            });
+            closeEditModal();
+            showSmartModal('success', 'Route Updated', 'Train route details have been updated successfully.');
+            loadSchedules();
         }
 
         async function loadBookingTrains() {
@@ -733,6 +791,33 @@
             input.value = id;
             input.style.borderColor = 'var(--primary-blue)';
             input.style.backgroundColor = 'var(--bg-input)';
+            // Store selected train price for summary
+            const cards = document.querySelectorAll('.searchable-card');
+            cards.forEach(card => {
+                const btn = card.querySelector('.select-btn');
+                if(btn && btn.getAttribute('onclick') && btn.getAttribute('onclick').includes(`'${id}'`)) {
+                    const text = card.querySelector('.search-target:last-child')?.innerText || '';
+                    const priceMatch = text.match(/(\d+(?:\.\d+)?)\s*SAR/);
+                    window._selectedTrainPrice = priceMatch ? parseFloat(priceMatch[1]) : 0;
+                }
+            });
+            updateTicketPriceSummary();
+        }
+
+        function updateTicketPriceSummary() {
+            const count = parseInt(document.getElementById('numberOfTickets')?.value) || 1;
+            const price = window._selectedTrainPrice || 0;
+            const summaryDiv = document.getElementById('price-summary');
+            const summaryText = document.getElementById('price-summary-text');
+            const trainID = document.getElementById('trainID')?.value;
+
+            if(price > 0 && trainID && !trainID.includes('Select') && count > 0) {
+                const total = (price * count).toFixed(2);
+                summaryText.innerText = `${count} ticket(s) × ${price} SAR = Total: ${total} SAR`;
+                summaryDiv.style.display = 'block';
+            } else {
+                summaryDiv.style.display = 'none';
+            }
         }
 
         async function createNewRoute() {
@@ -756,12 +841,14 @@
 
         async function bookTicket(event) {
             event.preventDefault();
+            const count = parseInt(document.getElementById('numberOfTickets').value) || 1;
             const payload = { 
                 trainID: document.getElementById('trainID').value, 
                 passengerID: document.getElementById('passengerID').value, 
                 name: document.getElementById('name').value, 
                 contactNumber: document.getElementById('contact').value,
-                paymentMethod: document.getElementById('paymentMethod').value
+                paymentMethod: document.getElementById('paymentMethod').value,
+                numberOfTickets: count
             };
             
             if(!payload.trainID || payload.trainID.includes('Select')) { 
@@ -772,9 +859,19 @@
             const result = await res.json();
             
             if(res.ok) {
-                showSmartModal('success', 'Reservation Confirmed!', `Ticket issued successfully. PNR: <strong style="color:var(--text-main); font-size:16px;">${result.ticketNumber}</strong>`);
+                let successMsg = '';
+                if(result.count > 1) {
+                    const pnrList = result.ticketNumbers.map(n => `<strong>#${n}</strong>`).join(', ');
+                    successMsg = `${result.count} tickets issued successfully!<br><br>PNRs: ${pnrList}`;
+                } else {
+                    successMsg = `Ticket issued successfully. PNR: <strong style="color:var(--text-main); font-size:16px;">${result.ticketNumber}</strong>`;
+                }
+                showSmartModal('success', 'Reservation Confirmed!', successMsg);
                 document.getElementById('trainID').value = '';
                 document.getElementById('trainID').style.backgroundColor = 'var(--border-color)';
+                document.getElementById('numberOfTickets').value = '1';
+                document.getElementById('price-summary').style.display = 'none';
+                window._selectedTrainPrice = 0;
                 if(currentRole !== 'passenger'){
                     document.getElementById('name').value = '';
                     document.getElementById('passengerID').value = '';
@@ -825,7 +922,7 @@
                         <td><span class="text-bold">#${t.ticketNumber}</span></td>
                         <td><span class="text-bold">${t.passengerName}</span><span class="text-small">ID: ${t.passengerID}</span></td>
                         <td style="text-align: center;"><span class="text-bold">${t.trainID}</span></td>
-                        <td style="text-align: center;">
+                       <td style="text-align: center;">
     <span class="status" style="
         background: ${t.status === 'Pending' ? '#d9770620' : (t.status === 'Cancelled' ? '#ef444420' : '#16a34a20')}; 
         color: ${t.status === 'Pending' ? '#d97706' : (t.status === 'Cancelled' ? '#dc2626' : '#16a34a')};
