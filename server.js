@@ -22,24 +22,46 @@ app.get('/api/trains', async (req, res) => {
 });
 
 app.patch('/api/trains/:id', async (req, res) => {
-    const { status, price } = req.body;
-    const { error } = await supabase.from('trains').update({ status, price }).eq('trainID', req.params.id);
+    const { status, price, departureDate, departureTime, totalCapacity, availableSeats } = req.body;
+    const updates = {};
+    if (status !== undefined) updates.status = status;
+    if (price !== undefined) updates.price = price;
+    if (departureDate !== undefined) updates.departureDate = departureDate;
+    if (departureTime !== undefined) updates.departureTime = departureTime;
+    if (totalCapacity !== undefined) updates.totalCapacity = totalCapacity;
+    if (availableSeats !== undefined) updates.availableSeats = availableSeats;
+
+    const { error } = await supabase.from('trains').update(updates).eq('trainID', req.params.id);
     if (error) return res.status(500).json({ error: error.message });
     res.json({ message: 'Train updated successfully.' });
 });
 
 app.post('/api/book', async (req, res) => {
-    const { trainID, passengerID, name, contactNumber, paymentMethod } = req.body;
+    const { trainID, passengerID, name, contactNumber, paymentMethod, numberOfTickets } = req.body;
+    const count = parseInt(numberOfTickets) || 1;
+
     const { data: train, error: trainError } = await supabase.from('trains').select('availableSeats').eq('trainID', trainID).single();
-    if (trainError || !train || train.availableSeats <= 0) return res.status(400).json({ message: 'No seats available.' });
+    if (trainError || !train) return res.status(400).json({ message: 'Train not found.' });
+    if (train.availableSeats < count) return res.status(400).json({ message: `Only ${train.availableSeats} seat(s) available. Requested: ${count}.` });
 
     const ticketStatus = paymentMethod === 'Cash at Station' ? 'Pending' : 'Confirmed';
 
     await supabase.from('passengers').upsert({ passengerID, name, contactNumber });
-    const { data: ticket } = await supabase.from('tickets').insert([{ passengerID, trainID, paymentMethod, status: ticketStatus }]).select().single();
-    await supabase.from('trains').update({ availableSeats: train.availableSeats - 1 }).eq('trainID', trainID);
 
-    res.json({ message: 'Booking successful!', ticketNumber: ticket.ticketNumber });
+    // Insert all tickets in one batch
+    const ticketsToInsert = Array.from({ length: count }, () => ({
+        passengerID, trainID, paymentMethod, status: ticketStatus
+    }));
+    const { data: insertedTickets } = await supabase.from('tickets').insert(ticketsToInsert).select();
+
+    await supabase.from('trains').update({ availableSeats: train.availableSeats - count }).eq('trainID', trainID);
+
+    const ticketNumbers = insertedTickets.map(t => t.ticketNumber);
+    const message = count > 1
+        ? `${count} tickets booked successfully!`
+        : 'Booking successful!';
+
+    res.json({ message, ticketNumbers, ticketNumber: ticketNumbers[0], count });
 });
 
 app.patch('/api/tickets/:id/confirm', async (req, res) => {
@@ -139,6 +161,7 @@ app.post('/api/trains', async (req, res) => {
         departureStation: departureStation,
         arrivalStation: arrivalStation,
         departureDate: dateStr,
+        departureTime: '10:00',
         price: parseFloat(price),
         totalCapacity: 50,
         availableSeats: 50,
