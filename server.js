@@ -25,15 +25,24 @@ app.patch('/api/trains/:id', async (req, res) => {
     const { status, price, departureDate, departureTime, totalCapacity, availableSeats } = req.body;
     const updates = {};
     if (status !== undefined) updates.status = status;
-    if (price !== undefined) updates.price = price;
+    if (price !== undefined) updates.price = parseFloat(price);
     if (departureDate !== undefined) updates.departureDate = departureDate;
-    if (departureTime !== undefined) updates.departureTime = departureTime;
-    if (totalCapacity !== undefined) updates.totalCapacity = totalCapacity;
-    if (availableSeats !== undefined) updates.availableSeats = availableSeats;
+    if (departureTime !== undefined) updates.departuretime = departureTime;
+    if (totalCapacity !== undefined) updates.totalCapacity = parseInt(totalCapacity);
+    if (availableSeats !== undefined) updates.availableSeats = parseInt(availableSeats);
 
-    const { error } = await supabase.from('trains').update(updates).eq('trainID', req.params.id);
-    if (error) return res.status(500).json({ error: error.message });
-    res.json({ message: 'Train updated successfully.' });
+    console.log(`PATCH /api/trains/${req.params.id} →`, updates);
+
+    const { data, error } = await supabase.from('trains').update(updates).eq('trainID', req.params.id).select();
+    if (error) {
+        console.error('Supabase error:', error);
+        return res.status(500).json({ error: error.message, details: error.details, hint: error.hint });
+    }
+    if (!data || data.length === 0) {
+        return res.status(404).json({ error: `No train found with trainID = ${req.params.id}` });
+    }
+    console.log('Updated:', data);
+    res.json({ message: 'Train updated successfully.', data });
 });
 
 app.post('/api/book', async (req, res) => {
@@ -161,7 +170,7 @@ app.post('/api/trains', async (req, res) => {
         departureStation: departureStation,
         arrivalStation: arrivalStation,
         departureDate: dateStr,
-        departureTime: '10:00',
+        departuretime: '10:00',
         price: parseFloat(price),
         totalCapacity: 50,
         availableSeats: 50,
