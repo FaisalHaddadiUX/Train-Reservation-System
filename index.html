@@ -679,14 +679,14 @@
 
                 const actionsHtml = (currentRole === 'admin') ? `
                     <td style="text-align: center; width: 100px;">
-                        <button class="action-btn" onclick="openEditModal('${t.trainID}', '${t.price}', '${dbStatus}', '${t.departureDate}', '${t.departureTime || '10:00'}', '${t.totalCapacity}', '${t.totalCapacity - t.availableSeats}')" title="Edit">✏️</button>
+                        <button class="action-btn" onclick="openEditModal('${t.trainID}', '${t.price}', '${dbStatus}', '${t.departureDate}', '${t.departuretime || '10:00'}', '${t.totalCapacity}', '${t.totalCapacity - t.availableSeats}')" title="Edit">✏️</button>
                     </td>` : '';
 
                 htmlStr += `
                     <tr>
                         <td><span class="text-bold">${t.trainID}</span></td>
                         <td><span class="text-bold">${t.departureStation}</span><span class="text-small">to ${t.arrivalStation}</span></td>
-                        <td><span class="text-bold">${t.departureDate}</span><span class="text-small">${t.departureTime || '10:00 AM'}</span></td>
+                        <td><span class="text-bold">${t.departureDate}</span><span class="text-small">${t.departuretime || '10:00'}</span></td>
                         <td style="text-align: center;"><span class="text-bold" style="color:${t.availableSeats>0?'#16a34a':'#dc2626'}">${t.availableSeats}</span></td>
                         <td style="text-align: center;"><span class="text-bold">${t.price} SAR</span></td>
                         <td style="text-align: center;"><span class="status ${statusClass}">${finalStatus}</span></td>
@@ -715,7 +715,7 @@
         function closeEditModal() { document.getElementById('editModal').style.display = 'none'; }
         async function saveTrainEdit() {
             const id = document.getElementById('editTrainId').value;
-            const newPrice = document.getElementById('editPrice').value;
+            const newPrice = parseFloat(document.getElementById('editPrice').value);
             const newStatus = document.getElementById('editStatus').value;
             const newDate = document.getElementById('editDate').value;
             const newTime = document.getElementById('editTime').value;
@@ -733,22 +733,35 @@
                 return;
             }
 
-            await fetch(`${API_URL}/trains/${id}`, {
-                method: 'PATCH',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({
-                    price: newPrice,
-                    status: newStatus,
-                    departureDate: newDate,
-                    departureTime: newTime,
-                    totalCapacity: newCapacity,
-                    availableSeats: newCapacity - booked
-                })
-            });
-            closeEditModal();
-            showSmartModal('success', 'Route Updated', 'Train route details have been updated successfully.');
-            loadSchedules();
+            try {
+                const res = await fetch(`${API_URL}/trains/${id}`, {
+                    method: 'PATCH',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({
+                        price: newPrice,
+                        status: newStatus,
+                        departureDate: newDate,
+                        departureTime: newTime,
+                        totalCapacity: newCapacity,
+                        availableSeats: newCapacity - booked
+                    })
+                });
+
+                const result = await res.json();
+
+                if(!res.ok) {
+                    showSmartModal('error', 'Update Failed', result.error || 'Unknown error from server.');
+                    return;
+                }
+
+                closeEditModal();
+                showSmartModal('success', 'Route Updated', 'Train route details have been updated successfully.');
+                loadSchedules();
+            } catch(e) {
+                showSmartModal('error', 'Connection Error', 'Could not reach the server: ' + e.message);
+            }
         }
+        
 
         async function loadBookingTrains() {
             const res = await fetch(`${API_URL}/trains`);
